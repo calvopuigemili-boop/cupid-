@@ -745,6 +745,10 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
   function fix(c){
     c.name = String(c.name || "Sin nombre"); c.sex = c.sex === "chico" ? "chico" : "chica";
     c.entries = Array.isArray(c.entries) ? c.entries : []; c.transcript = String(c.transcript || "");
+    // Quita intentos en los que la IA no propuso mensajes (no aportan nada al chat)
+    c.entries = c.entries.filter(e => e.k === "sent" || (Array.isArray(e.r?.opciones) && e.r.opciones.some(o => o && o.mensaje)));
+    // Y las fichas que en realidad eran una negativa de la IA
+    if (/^\s*(no (voy|puedo|analizo|describo)|lo siento|prefiero no)/i.test(String(c.ficha || ""))) c.ficha = "";
     c.likes = String(c.likes || ""); c.ficha = String(c.ficha || ""); c.updated = Number(c.updated) || 0;
     return c;
   }
@@ -1626,7 +1630,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     ["open","reply"].forEach(tab => {
       const L = last[tab]; if (!L) return;
       const c = byId(L.chatId); const e = c?.entries.find(x => x.t === L.t);
-      if (!c || !e) return;
+      if (!c || !e || !e.r?.opciones?.length) return;
       panelResult($(`#${tab}Out`), tab, e.r, c, { ...e, restored: true });
       if (pick[tab] === "new" && !$(`#${tab}-name`).value) pick[tab] = c.id;
     });
