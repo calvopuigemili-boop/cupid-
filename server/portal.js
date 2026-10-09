@@ -7,6 +7,8 @@ export default async function handler(req, res) {
   let body;
   try { body = await readJson(req, 10_000); } catch { return send(res, 400, { error: "bad_request" }); }
   const license = String(body.license || "").trim().toUpperCase();
+  const comp = String(process.env.COMP_LICENSES || "").split(",").map(x => x.trim().toUpperCase());
+  if (comp.includes(license)) return send(res, 409, { error: "comp_license", message: "Este Premium es un regalo: no hay suscripción que gestionar." });
   try {
     const raw = await redis(["GET", "lic:" + license]);
     if (!raw) return send(res, 404, { error: "unknown_license" });

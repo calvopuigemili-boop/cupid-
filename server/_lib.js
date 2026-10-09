@@ -86,7 +86,11 @@ export { stripe };
 
 // Devuelve {premium: bool, customer?} para una licencia. Cachea el estado 1 hora.
 export async function licenseStatus(license) {
-  if (!license || !/^CUP-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(license) || !CFG.stripeKey) return { premium: false };
+  if (!license || !/^CUP-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(license)) return { premium: false };
+  // Códigos regalados (sin pago): lista en la variable COMP_LICENSES, separados por comas
+  const comp = String(process.env.COMP_LICENSES || "").split(",").map(x => x.trim().toUpperCase()).filter(Boolean);
+  if (comp.includes(license)) return { premium: true, comp: true };
+  if (!CFG.stripeKey) return { premium: false };
   const raw = await redis(["GET", "lic:" + license]);
   if (!raw) return { premium: false };
   const lic = typeof raw === "string" ? JSON.parse(raw) : raw;

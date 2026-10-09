@@ -531,7 +531,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
       <div class="row2"><button class="btn ghost small" id="pwCopy" type="button">Copiar código</button><button class="btn ghost small" id="pwManage" type="button">Gestionar suscripción</button></div>
     </div>
     <div class="field">
-      <label class="label" for="pwInput">¿Ya pagaste en otro móvil?</label>
+      <label class="label" for="pwInput">¿Tienes un código Premium?</label>
       <div class="row2"><input type="text" id="pwInput" placeholder="CUP-XXXX-XXXX-XXXX" autocomplete="off" maxlength="20"><button class="btn small" id="pwRestore" type="button">Restaurar</button></div>
       <p class="msg-err" id="pwRestoreMsg"></p>
     </div>
@@ -1510,8 +1510,8 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
   $("#pwManage").onclick = async () => {
     try {
       const r = await fetch("/api/portal", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ license }) });
-      const j = await r.json(); if (j.url) location.href = j.url; else throw 0;
-    } catch { $("#pwRestoreMsg").textContent = "No se ha podido abrir la gestión. Prueba en un rato."; }
+      const j = await r.json(); if (j.url) location.href = j.url; else throw j;
+    } catch (e){ $("#pwRestoreMsg").textContent = e?.message || "No se ha podido abrir la gestión. Prueba en un rato."; }
   };
   $("#pwCopy").onclick = async () => { try { await navigator.clipboard.writeText(license); toast("Código copiado"); } catch {} };
   async function refreshUsage(){

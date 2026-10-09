@@ -35,6 +35,7 @@ En Netlify → Project configuration → Environment variables (con alcance **Fu
 
 | Variable | Obligatoria | Qué es |
 |---|---|---|
+| `COMP_LICENSES` | Ya puesta | Códigos Premium regalados, separados por comas. Para quitar uno, bórralo de la lista y vuelve a desplegar. |
 | `FEEDBACK_SECRET`, `ADMIN_KEY` | Ya puestas | Firma de los mensajes y clave del panel `/admin`. |
 | `SITE_URL` | Ya puesta | `https://cupida-app.netlify.app` (cámbiala si pones dominio propio). |
 | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID` | Para cobrar | Clave secreta de Stripe y el `price_...` de tu suscripción mensual. Sin ellas, Premium dice "muy pronto". |
