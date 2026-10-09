@@ -988,7 +988,8 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
       if (status) status.textContent = `${label} ${i + 1}–${i + chunk.length} de ${imgs.length}…`;
       const images = await Promise.all(chunk.map(toImage));
       const { text } = await api("read", { kind: spec.kind, person: { name: spec.name || "" }, images }, signal);
-      parts.push(String(text || "").trim());
+      const t = String(text || "").trim();
+      if (!/^(no (voy|puedo|analizo|describo)|lo siento|prefiero no)/i.test(t)) parts.push(t);
     }
     return parts.join("\n");
   }
@@ -999,7 +1000,14 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     if (status) status.textContent = "Pensando la jugada…";
     return { images: [], notes };
   }
-  // Llamada principal: devuelve {data} o {notConvo, motivo}
+  // Cuando la IA no quiere generar mensajes, se explica sin guardar nada en el chat
+  function blockedBox(motivo){
+    const box = el("div","redirect");
+    box.append(el("p",null, motivo || "Esta vez la IA no ha querido proponer mensajes."));
+    box.append(el("p","note","Prueba a contarle tú con tus palabras qué ha subido (por ejemplo: \"story en un concierto con una camiseta de Pikachu\") en vez de subir capturas, o añade qué os une (\"la conocí en clase de pádel\")."));
+    return box;
+  }
+  // Llamada principal: devuelve {data}, {notConvo, motivo} o {blocked, motivo}
   async function ask(c, mode, txt, imgs, signal, status){
     const prep = await prepImages(imgs, mode === "open" ? STORY_READ(c.name) : CHAT_READ(c.name), signal, status);
     const { data } = await api(mode, {
@@ -1008,6 +1016,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     }, signal);
     if (!data || typeof data !== "object") throw { code: "invalid_json" };
     if (mode === "reply" && data.es_conversacion === false) return { notConvo: true, motivo: data.motivo };
+    if (!Array.isArray(data.opciones) || !data.opciones.some(o => o && o.mensaje)) return { blocked: true, motivo: data.lectura };
     return { data };
   }
   // Guarda el resultado en el chat de la persona
@@ -1208,6 +1217,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
         box.append(go); out.replaceChildren(box);
         return;
       }
+      if (res.blocked){ out.replaceChildren(blockedBox(res.motivo)); Sfx.bonk(); return; }
       const wasNew = pick[tab] === "new";
       const entry = await commit(c, tab, txt, imgs.length, res.data);
       panelResult(out, tab, res.data, c, entry);
@@ -1338,6 +1348,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
         const go = el("button","btn small","Pasarlo a Abrir"); go.onclick = () => { setCMode("open"); $("#cIn").value = txt; };
         box.append(go); out.replaceChildren(box); return;
       }
+      if (res.blocked){ out.replaceChildren(blockedBox(res.motivo)); Sfx.bonk(); return; }
       await commit(c, mode, txt, imgs.length, res.data);
       out.innerHTML = ""; $("#cIn").value = ""; files.chat = []; drawers.chat?.();
       renderThread(true); Sfx.ding();
