@@ -1,4 +1,5 @@
 [build]
+  command = "npm run build"
   publish = "public"
   functions = "netlify/functions"
 
@@ -8,6 +9,11 @@
 [[redirects]]
   from = "/privacidad"
   to = "/privacidad.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
   status = 200
 
 [[redirects]]

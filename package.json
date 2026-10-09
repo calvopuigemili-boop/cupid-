@@ -8,11 +8,16 @@
     "node": ">=20"
   },
   "scripts": {
+    "build": "esbuild client/auth.js --bundle --format=esm --minify --target=es2020 --outfile=public/auth.js",
     "dev": "netlify dev",
     "deploy": "netlify deploy --prod"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.127.0",
-    "@netlify/blobs": "11.1.0"
+    "@netlify/blobs": "11.1.0",
+    "@netlify/identity": "2.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
   }
 }

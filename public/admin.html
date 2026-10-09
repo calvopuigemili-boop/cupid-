@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Panel de Cupid@</title>
+<link rel="icon" href="/icons/favicon-32.png" sizes="32x32" type="image/png">
+<style>
+:root{--bg:#FBF2F3;--surface:#fff;--ink:#2A0A16;--muted:#7E5D68;--line:#F0DCE2;--accent:#C90449;--good:#1F8A4C;--bad:#C90449}
+@media (prefers-color-scheme:dark){:root{--bg:#16060D;--surface:#220B15;--ink:#FBEFF3;--muted:#B892A0;--line:#3A1826;--accent:#FF2D72;--good:#5BD08B;--bad:#FF6B95;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:20px 16px 60px}
+main{max-width:900px;margin:0 auto;display:grid;gap:16px}
+h1{margin:0;font-size:1.6rem}h2{margin:0 0 8px;font-size:1.1rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--bg);color:var(--ink);font:inherit}
+button{border:0;border-radius:12px;background:var(--accent);color:#fff;font-weight:700;padding:10px 16px;cursor:pointer;font:inherit}
+.muted{color:var(--muted)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{background:var(--surface);color:var(--muted);border:1px solid var(--line);padding:6px 12px}
+.tabs button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.n{text-align:right;white-space:nowrap}
+.pos{color:var(--good);font-weight:700}.neg{color:var(--bad);font-weight:700}
+ul{margin:0;padding-left:18px;display:grid;gap:8px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Panel de Cupid@</h1>
+  <p class="muted">Lo que la gente sugiere y los mensajes de los que la IA está aprendiendo. Solo entra quien tenga la clave de administración.</p>
+  <form class="card row" id="f"><input type="password" id="k" placeholder="Clave de administración" autocomplete="current-password"><button>Ver</button></form>
+  <p class="muted" id="msg"></p>
+  <section class="card" id="sugg" hidden><h2>Sugerencias</h2><ul id="suggList"></ul></section>
+  <section class="card" id="pools" hidden>
+    <h2>Mensajes que más funcionan</h2>
+    <div class="tabs" id="tabs"></div>
+    <div class="wrap"><table><thead><tr><th>Mensaje</th><th>Tipo</th><th class="n">👍</th><th class="n">👎</th><th class="n">Enviado</th><th class="n">Contestaron</th><th class="n">Puntos</th></tr></thead><tbody id="rows"></tbody></table></div>
+  </section>
+</main>
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  let data = null, cur = "open/picante";
+  const label = { "open/suave": "Abrir · Suave", "open/picante": "Abrir · Picante", "open/sinfiltro": "Abrir · Sin filtro", "reply/suave": "Responder · Suave", "reply/picante": "Responder · Picante", "reply/sinfiltro": "Responder · Sin filtro" };
+  function cell(t, cls){ const td = document.createElement("td"); td.textContent = t; if (cls) td.className = cls; return td; }
+  function draw(){
+    $("#tabs").innerHTML = "";
+    Object.keys(label).forEach(k => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = `${label[k]} (${data.pools[k]?.length || 0})`;
+      b.setAttribute("aria-pressed", k === cur); b.onclick = () => { cur = k; draw(); }; $("#tabs").append(b);
+    });
+    const rows = $("#rows"); rows.innerHTML = "";
+    const list = data.pools[cur] || [];
+    if (!list.length){ const tr = document.createElement("tr"); const td = cell("Todavía no hay votos en este grupo."); td.colSpan = 7; tr.append(td); rows.append(tr); }
+    list.forEach(i => {
+      const tr = document.createElement("tr");
+      tr.append(cell(i.msg), cell(i.tipo), cell(i.likes, "n"), cell(i.dislikes, "n"), cell(i.sent, "n"), cell(i.replied, "n"), cell(i.score, "n " + (i.score > 0 ? "pos" : i.score < 0 ? "neg" : "")));
+      rows.append(tr);
+    });
+  }
+  $("#f").addEventListener("submit", async e => {
+    e.preventDefault();
+    $("#msg").textContent = "Cargando…";
+    try {
+      const r = await fetch("/api/feedback?key=" + encodeURIComponent($("#k").value));
+      if (r.status === 403){ $("#msg").textContent = "Clave incorrecta."; return; }
+      data = await r.json(); $("#msg").textContent = "";
+      const ul = $("#suggList"); ul.innerHTML = "";
+      if (!data.suggestions.length){ const li = document.createElement("li"); li.textContent = "Aún no hay sugerencias."; ul.append(li); }
+      data.suggestions.forEach(s => { const li = document.createElement("li"); li.textContent = `${new Date(s.at).toLocaleString("es-ES")} — ${s.text}`; ul.append(li); });
+      $("#sugg").hidden = false; $("#pools").hidden = false; draw();
+    } catch { $("#msg").textContent = "No se ha podido cargar. Prueba otra vez."; }
+  });
+})();
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@
 // Cabeceras: x-device (id aleatorio del móvil), x-license (código Premium, opcional).
 import { CFG, send, readJson, clientIp, today, bump, peek, licenseStatus, claude, parseJson } from "./_lib.js";
 import { cleanInput, buildTask } from "./_prompts.js";
+import { examples, examplesBlock, sign } from "./_learn.js";
 
 export default async function handler(req, res) {
   if (req.method === "GET") return usage(req, res);
@@ -35,7 +36,10 @@ export default async function handler(req, res) {
     }
   } catch { /* si Redis cae, no bloqueamos al usuario */ }
 
-  const { system, prompt, json } = buildTask(x);
+  // Lo que ha funcionado a otros usuarios con este mismo nivel, como inspiración
+  const learned = (x.task === "open" || x.task === "reply") ? examplesBlock(await examples(x.task, x.level)) : "";
+  const { system, prompt: basePrompt, json } = buildTask(x);
+  const prompt = learned ? basePrompt.replace(/\nResponde SOLO con JSON/, learned + "\n\nResponde SOLO con JSON") : basePrompt;
   const content = [
     ...x.images.map(i => ({ type: "image", source: { type: "base64", media_type: i.media_type, data: i.data } })),
     { type: "text", text: prompt + (json ? "\n\nTu respuesta se va a leer con un programa: devuelve solo el JSON, sin texto alrededor." : "") },
@@ -46,6 +50,8 @@ export default async function handler(req, res) {
     const text = await claude({ model, system, content, maxTokens: x.task === "read" ? 1200 : 1600 });
     if (!json) return send(res, 200, { text });
     const data = parseJson(text);
+    // Firma cada opción para poder aceptar luego votos solo sobre mensajes generados aquí
+    if (Array.isArray(data.opciones)) data.opciones.forEach(o => { if (o && typeof o.mensaje === "string") o.sig = sign(x.task, x.level, String(o.tipo || ""), o.mensaje); });
     // Si lo pegado no era una conversación, no se gasta un mensaje
     const counts = !(x.task === "reply" && data.es_conversacion === false);
     const limit = lic.premium ? CFG.premiumDaily : CFG.freeDaily;

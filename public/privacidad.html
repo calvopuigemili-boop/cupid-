@@ -27,12 +27,14 @@ p,li{color:var(--ink)}small,.muted{color:var(--muted)}a{color:var(--accent)}
 <p><span class="fill">[TU NOMBRE O EMPRESA]</span>, con NIF <span class="fill">[NIF]</span> y domicilio en <span class="fill">[DIRECCIÓN]</span>. Para cualquier tema de privacidad escribe a <span class="fill">[EMAIL]</span>.</p>
 
 <h2>La idea en corto</h2>
-<p>Tus chats, las fichas de las personas que añades y vuestras conversaciones se guardan <strong>solo en tu móvil</strong>, no en nuestros servidores. Cuando pides un mensaje, enviamos lo necesario para generarlo, lo procesamos y no lo guardamos.</p>
+<p>Sin cuenta, tus chats, las fichas de las personas que añades y vuestras conversaciones se guardan <strong>solo en tu móvil</strong>. Si creas una cuenta, además se guardan <strong>en tu cuenta</strong> para que no los pierdas y los tengas en cualquier dispositivo; puedes borrarlo todo cuando quieras. Cuando pides un mensaje, enviamos lo necesario para generarlo y no guardamos esa petición.</p>
 
 <h2>Qué datos tratamos y para qué</h2>
 <ul>
   <li><strong>Lo que escribes o subes al generar</strong> (texto, capturas, datos de la persona y la conversación guardada): se envía a nuestro servidor y a nuestro proveedor de inteligencia artificial solo para crear la respuesta. No lo almacenamos. Base legal: prestarte el servicio que pides (art. 6.1.b RGPD).</li>
   <li><strong>Un identificador aleatorio de tu dispositivo y tu dirección IP</strong>: para contar cuántos mensajes gratis llevas hoy y evitar abusos. Se borra automáticamente en unas 26 horas. Base legal: interés legítimo en prevenir el abuso (art. 6.1.f RGPD).</li>
+  <li><strong>Si creas una cuenta</strong>: tu email, tu contraseña cifrada (la gestiona Netlify Identity), tu perfil (qué eres y a quién buscas, nivel de picante) y tus chats. Base legal: prestarte el servicio que pides (art. 6.1.b RGPD). Se guardan mientras tengas la cuenta; desde "Tu cuenta → Borrar mi cuenta y mis datos" se elimina todo al momento.</li>
+  <li><strong>Para que Cupid@ mejore</strong>: cuando votas un mensaje, marcas que lo has enviado o le contestan, guardamos ese mensaje <strong>anonimizado</strong> (sin el nombre de la persona, @usuarios, enlaces, correos ni números) con su nivel y su puntuación, sin relacionarlo contigo. Esos mensajes se usan como ejemplos de estilo para la IA. Las sugerencias que nos envías se guardan con un identificador aleatorio del dispositivo, nunca con tu cuenta. Base legal: interés legítimo en mejorar el servicio (art. 6.1.f RGPD); si no quieres participar, no votes ni marques mensajes.</li>
   <li><strong>Si te haces Premium</strong>: el pago lo gestiona Stripe; nosotros no vemos tu tarjeta. Guardamos tu código Premium asociado a tu suscripción para saber si está activa. Base legal: ejecución del contrato.</li>
 </ul>
 
@@ -42,12 +44,12 @@ p,li{color:var(--ink)}small,.muted{color:var(--muted)}a{color:var(--accent)}
 <h2>Con quién se comparten</h2>
 <ul>
   <li><strong>Anthropic</strong> (proveedor de la IA Claude, EE. UU.), a través de la pasarela de IA de Netlify, para generar las respuestas. Netlify no guarda las peticiones ni las respuestas; Anthropic las trata conforme a sus <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener">condiciones de privacidad</a>.</li>
-  <li><strong>Netlify</strong> (alojamiento de la web y del contador de uso) y <strong>Stripe</strong> (pagos).</li>
+  <li><strong>Netlify</strong> (alojamiento de la web, cuentas, chats de quien tiene cuenta y contador de uso; sus servidores de datos están en EE. UU.) y <strong>Stripe</strong> (pagos).</li>
 </ul>
 <p>Algunos de estos proveedores están fuera del Espacio Económico Europeo. Las transferencias se amparan en las cláusulas contractuales tipo de la Comisión Europea o en el Marco de Privacidad de Datos UE-EE. UU.</p>
 
 <h2>Cuánto tiempo</h2>
-<p>El contador de uso, unas 26 horas. El código Premium, mientras dure tu suscripción y el tiempo que exija la ley fiscal. Los chats viven en tu móvil hasta que los borres: desde la ficha de cada chat, o borrando los datos del navegador o la app.</p>
+<p>El contador de uso, unas 26 horas. El código Premium, mientras dure tu suscripción y el tiempo que exija la ley fiscal. Sin cuenta, los chats viven en tu móvil hasta que los borres; con cuenta, hasta que los borres o borres la cuenta. Al cerrar sesión se quitan del móvil y siguen en tu cuenta. Los mensajes anonimizados para aprender se conservan mientras sean útiles y no permiten identificar a nadie.</p>
 
 <h2>Tus derechos</h2>
 <p>Puedes pedir acceso, rectificación, supresión, oposición, limitación y portabilidad escribiendo a <span class="fill">[EMAIL]</span>. Si no te atendemos bien, puedes reclamar ante la <a href="https://www.aepd.es" target="_blank" rel="noopener">Agencia Española de Protección de Datos</a>.</p>

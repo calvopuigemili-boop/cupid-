@@ -314,11 +314,25 @@ h3{font-size:1.05rem;font-weight:800}
 .sheet .row2{display:flex;gap:8px}
 .sheet .row2 input{flex:1;min-width:0;text-transform:uppercase}
 .sheet .x{justify-self:end;border:0;background:var(--bubble-in);width:32px;height:32px;border-radius:50%;cursor:pointer;margin-bottom:-36px;position:relative;z-index:1}
-.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:.92rem;z-index:60;animation:fadeUp .3s both;max-width:calc(100% - 32px);text-align:center;transition:opacity .4s}
+.toast{position:fixed;left:0;right:0;margin-inline:auto;width:max-content;bottom:calc(24px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-weight:600;font-size:.92rem;z-index:60;animation:fadeUp .3s both;max-width:calc(100% - 32px);text-align:center;transition:opacity .4s}
 .toast.out{opacity:0}
 .foot a{color:var(--muted)}
+.linkbtn{border:0;background:none;color:var(--accent);font-weight:700;cursor:pointer;padding:4px 0;font-size:.9rem;text-decoration:underline;text-underline-offset:3px}
+.foot .linkbtn{color:var(--muted);font-weight:500;font-size:inherit;padding:0}
+.chipbtn.acct{color:var(--ink);min-width:34px}
+.chipbtn.acct.in{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;border-color:transparent;width:34px;height:34px;padding:0;display:grid;place-items:center;border-radius:50%;font-family:var(--f-display)}
+input[type="password"]{width:100%;border:1.5px solid var(--line);border-radius:14px;background:var(--bg);padding:12px 14px;line-height:1.45}
+input[type="password"]:focus{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 4px var(--accent-soft);outline:none}
+.votes{display:inline-flex;gap:4px}
+.vote{border:1.5px solid var(--line);background:var(--surface);color:var(--muted);width:32px;height:32px;border-radius:50%;display:grid;place-items:center;cursor:pointer;transition:all .15s}
+.vote:hover:not(:disabled){color:var(--accent);border-color:var(--accent)}
+.vote.down svg{transform:rotate(180deg)}
+.vote.on{background:var(--accent);border-color:var(--accent);color:#fff;transform:scale(1.1)}
+.vote:disabled:not(.on){opacity:.4;cursor:default}
+.sheet .card{max-height:calc(100vh - 32px);overflow-y:auto}
 .who{display:inline-flex;align-items:center;gap:6px}
 @media (max-width:520px){.who .wtxt{display:none}.who{padding:6px 8px}}
+@media (max-width:480px){.logo > span:last-child{display:none}.top .right{gap:6px}}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
 }
@@ -334,6 +348,7 @@ h3{font-size:1.05rem;font-weight:800}
   <div class="right">
     <button class="chipbtn install" id="installBtn" type="button" hidden>Instalar</button>
     <button class="chipbtn" id="usageChip" type="button" hidden></button>
+    <button class="chipbtn acct" id="acctBtn" type="button" hidden>Entrar</button>
     <button class="sound" id="soundBtn" type="button" aria-label="Sonido activado" aria-pressed="true"></button>
     <button class="who" id="whoBtn" hidden>Perfil</button>
   </div>
@@ -476,7 +491,7 @@ h3{font-size:1.05rem;font-weight:800}
     <div class="result" id="profOut"></div>
   </section>
 
-  <p class="foot">Descaro sí, pesadez no: si alguien no responde, te corta o tiene pareja, se respeta y a otra cosa.<br><a href="/privacidad">Privacidad</a> · <a href="/terminos">Términos</a> · Solo mayores de 18 · Cupid@ no tiene relación con Instagram ni Meta.</p>
+  <p class="foot">Descaro sí, pesadez no: si alguien no responde, te corta o tiene pareja, se respeta y a otra cosa.<br><button class="linkbtn" id="suggBtn" type="button">Dinos qué mejorar</button> · <a href="/privacidad">Privacidad</a> · <a href="/terminos">Términos</a> · Solo mayores de 18 · Cupid@ no tiene relación con Instagram ni Meta.</p>
 </main>
 </div>
 
@@ -520,6 +535,54 @@ h3{font-size:1.05rem;font-weight:800}
       <div class="row2"><input type="text" id="pwInput" placeholder="CUP-XXXX-XXXX-XXXX" autocomplete="off" maxlength="20"><button class="btn small" id="pwRestore" type="button">Restaurar</button></div>
       <p class="msg-err" id="pwRestoreMsg"></p>
     </div>
+  </div>
+</div>
+
+<!-- Cuenta -->
+<div class="sheet" id="acct" hidden role="dialog" aria-modal="true" aria-labelledby="acctTitle">
+  <div class="card">
+    <button class="x" id="acctClose" type="button" aria-label="Cerrar">✕</button>
+    <span class="cupid-img" aria-hidden="true"></span>
+    <div id="acctOut" class="stack">
+      <h2 id="acctTitle">Crea tu cuenta</h2>
+      <p class="note" id="acctIntro" style="text-align:center">Así no pierdes tus chats si cambias de móvil o borras la app.</p>
+      <button class="btn ghost block" id="acctGoogle" type="button" hidden>Continuar con Google</button>
+      <form id="acctForm" class="stack" novalidate>
+        <div class="field"><label class="label" for="acctMailIn">Email</label><input type="text" id="acctMailIn" inputmode="email" autocomplete="email" placeholder="tu@email.com"></div>
+        <div class="field"><label class="label" for="acctPass">Contraseña</label><input type="password" id="acctPass" autocomplete="new-password" placeholder="Mínimo 8 caracteres"></div>
+        <button class="btn block" id="acctGo" type="submit">Crear cuenta</button>
+      </form>
+      <div class="row2" style="justify-content:space-between;flex-wrap:wrap">
+        <button class="linkbtn" id="acctSwitch" type="button">Ya tengo cuenta</button>
+        <button class="linkbtn" id="acctForgot" type="button" hidden>He olvidado la contraseña</button>
+      </div>
+      <button class="linkbtn" id="acctSkip" type="button" style="justify-self:center">Seguir sin cuenta</button>
+    </div>
+    <div id="acctIn" class="stack" hidden>
+      <h2>Tu cuenta</h2>
+      <p class="note" style="text-align:center"><strong id="acctEmail"></strong><br>Tus chats, tu perfil y Premium se guardan en tu cuenta.</p>
+      <button class="btn ghost block" id="acctOutBtn" type="button">Cerrar sesión</button>
+      <button class="danger" id="acctDel" type="button" style="justify-self:center">Borrar mi cuenta y mis datos</button>
+    </div>
+    <div id="acctReset" class="stack" hidden>
+      <h2>Nueva contraseña</h2>
+      <div class="field"><label class="label" for="acctNewPass">Contraseña nueva</label><input type="password" id="acctNewPass" autocomplete="new-password" placeholder="Mínimo 8 caracteres"></div>
+      <button class="btn block" id="acctNewPassGo" type="button">Guardar contraseña</button>
+    </div>
+    <p class="note" id="acctMsg" role="status"></p>
+  </div>
+</div>
+
+<!-- Sugerencias -->
+<div class="sheet" id="sugg" hidden role="dialog" aria-modal="true" aria-labelledby="suggTitle">
+  <div class="card">
+    <button class="x" id="suggClose" type="button" aria-label="Cerrar">✕</button>
+    <span class="cupid-img" aria-hidden="true"></span>
+    <h2 id="suggTitle">¿Qué mejorarías de Cupid@?</h2>
+    <p class="note" style="text-align:center">Lo que nos digáis decide lo siguiente que hacemos. Sin datos de nadie, porfa.</p>
+    <div class="field"><label class="label" for="suggIn">Tu idea o tu queja</label><textarea id="suggIn" maxlength="1000" placeholder="Ej: que el nivel Sin filtro sea aún más bestia, o que se pueda elegir el idioma"></textarea></div>
+    <p class="msg-err" id="suggMsg"></p>
+    <button class="btn block" id="suggGo" type="button">Enviar</button>
   </div>
 </div>
 
@@ -719,7 +782,7 @@ h3{font-size:1.05rem;font-weight:800}
     listeners: [],
     async init(){ chats = Object.values(ls.get("cupid_chats") || {}).map(fix).sort((a,b) => b.updated - a.updated); this.emit(); },
     emit(){ this.listeners.forEach(f => f()); },
-    saveMe(m){ ls.set("cupid_me", m); },
+    saveMe(m){ ls.set("cupid_me", m); Sync.pushMe(); },
     write(){
       const all = {}; chats.forEach(c => { all[c.id] = c; });
       try { localStorage.setItem("cupid_chats", JSON.stringify(all)); return true; }
@@ -737,9 +800,9 @@ h3{font-size:1.05rem;font-weight:800}
         chats.forEach(c => { c.entries = c.entries.slice(-15); });
         if (!this.write()) toast("El móvil no tiene más espacio para chats. Borra alguno que ya no uses.");
       }
-      this.emit(); return Promise.resolve();
+      this.emit(); Sync.push(chat); return Promise.resolve();
     },
-    remove(id){ chats = chats.filter(c => c.id !== id); this.write(); this.emit(); }
+    remove(id){ chats = chats.filter(c => c.id !== id); this.write(); this.emit(); Sync.del(id); }
   };
   const newId = () => "c" + Date.now().toString(36) + Math.random().toString(36).slice(2,7);
   const byId = id => chats.find(c => c.id === id);
@@ -774,6 +837,7 @@ h3{font-size:1.05rem;font-weight:800}
     if (!g || !t){ err.textContent = "Elige qué eres y a quién buscas para afinar los mensajes."; err.hidden = false; return; }
     if (!$("#adult").checked){ err.textContent = "Cupid@ es solo para mayores de 18. Si aún no los tienes, esta app no es para ti."; err.hidden = false; return; }
     err.hidden = true; me = { g, t }; Store.saveMe(me); show("home"); renderPickers(); Sfx.chime();
+    if (Auth && !Sync.user) setTimeout(() => openAccount("signup", true), 500);
     const p = $("#p-open"); p.classList.remove("enter"); void p.offsetWidth; p.classList.add("enter");
   });
   $("#whoBtn").addEventListener("click", () => {
@@ -791,7 +855,7 @@ h3{font-size:1.05rem;font-weight:800}
       const seg = el("div","seg"); seg.setAttribute("role","group"); seg.setAttribute("aria-label","Nivel de picante");
       LEVELS.forEach(([k,lab]) => {
         const b = el("button",null,lab); b.type = "button"; b.dataset.l = k; b.setAttribute("aria-pressed", k === level);
-        b.onclick = () => { level = k; ls.set("cupid_level", k); renderSpice(); };
+        b.onclick = () => { level = k; ls.set("cupid_level", k); renderSpice(); Sync.pushMe(); };
         seg.append(b);
       });
       box.append(seg, el("p","hint", LEVEL_HINT[level]));
@@ -980,7 +1044,13 @@ h3{font-size:1.05rem;font-weight:800}
   // Guarda el resultado en el chat de la persona
   function commit(c, mode, txt, n, data){
     if (mode === "reply"){
-      const lines = (Array.isArray(data.mensajes) ? data.mensajes : []).map(m => (norm(m.de) === "yo" ? "Yo: " : c.name + ": ") + String(m.texto || "")).filter(l => l.trim().length > 4);
+      const msgs = Array.isArray(data.mensajes) ? data.mensajes : [];
+      // Si ha contestado la otra persona, el último mensaje que enviaste desde Cupid@ funcionó: se aprende de él
+      if (msgs.some(m => norm(m.de) !== "yo")){
+        const last = [...c.entries].reverse().find(e => e.k === "sent");
+        if (last && last.sig && !last.replied){ last.replied = true; sendFeedback({ event: "replied", task: last.task, level: last.lvl, tipo: last.tipo, msg: last.msg, sig: last.sig, name: c.name }); }
+      }
+      const lines = msgs.map(m => (norm(m.de) === "yo" ? "Yo: " : c.name + ": ") + String(m.texto || "")).filter(l => l.trim().length > 4);
       if (lines.length) c.transcript = (c.transcript ? c.transcript + "\n" : "") + lines.join("\n");
       if (data.quimica != null && !isNaN(Number(data.quimica))) c.quimica = Math.max(0, Math.min(100, Math.round(Number(data.quimica))));
     }
@@ -989,9 +1059,13 @@ h3{font-size:1.05rem;font-weight:800}
     c.entries.push(entry);
     return Store.save(c).then(() => entry);
   }
-  function markSent(id, msg){
+  function sendFeedback(body){
+    try { fetch("/api/feedback", { method: "POST", keepalive: true, headers: { "content-type": "application/json", "x-device": deviceId }, body: JSON.stringify(body) }).catch(() => {}); } catch {}
+  }
+  function markSent(id, msg, meta = {}){
     const c = byId(id); if (!c) return;
-    c.entries.push({ k: "sent", msg, t: Date.now() });
+    c.entries.push({ k: "sent", msg, t: Date.now(), sig: meta.sig, tipo: meta.tipo, task: meta.task, lvl: meta.level });
+    if (meta.sig) sendFeedback({ event: "sent", task: meta.task, level: meta.level, tipo: meta.tipo, msg, sig: meta.sig, name: c.name });
     c.transcript = (c.transcript ? c.transcript + "\n" : "") + "Yo: " + msg;
     Store.save(c);
   }
@@ -1015,7 +1089,20 @@ h3{font-size:1.05rem;font-weight:800}
     });
     return a;
   }
-  function options(list, chatId){
+  const THUMB = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h3zm0 0 4-7a2 2 0 0 1 2 2v4h5.5a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.3 20H7"/></svg>';
+  function voteBtns(o, meta, name){
+    const w = el("span","votes"); w.setAttribute("role","group"); w.setAttribute("aria-label","¿Te gusta este mensaje?");
+    const up = el("button","vote"); up.type = "button"; up.innerHTML = THUMB; up.setAttribute("aria-label","Me gusta");
+    const down = el("button","vote down"); down.type = "button"; down.innerHTML = THUMB; down.setAttribute("aria-label","No me gusta");
+    const vote = (b, ev) => {
+      if (w.dataset.done) return; w.dataset.done = "1"; b.classList.add("on"); up.disabled = down.disabled = true;
+      sendFeedback({ event: ev, task: meta.task, level: meta.level, tipo: String(o.tipo || ""), msg: String(o.mensaje || ""), sig: o.sig, name });
+      toast(ev === "like" ? "Apuntado: Cupid@ aprende de lo que te gusta" : "Apuntado: Cupid@ evitará ese estilo");
+    };
+    up.onclick = () => vote(up, "like"); down.onclick = () => vote(down, "dislike");
+    w.append(up, down); return w;
+  }
+  function options(list, chatId, meta){
     const frag = document.createDocumentFragment();
     (list || []).forEach(o => {
       const k = KIND[norm(o.tipo)] || [o.tipo || "Opción","var(--muted)"];
@@ -1026,6 +1113,7 @@ h3{font-size:1.05rem;font-weight:800}
       box.append(lab, bub);
       if (o.porque) box.append(el("p","why", String(o.porque)));
       const acts = el("div","acts"); acts.append(copyBtn(msg, bub), igBtn(msg));
+      if (chatId && meta && o.sig) acts.append(voteBtns(o, meta, byId(chatId)?.name));
       if (chatId){
         // Casilla: al marcarla se guarda en el chat y el cupido dispara
         const lab = el("label","sentchk");
@@ -1036,7 +1124,7 @@ h3{font-size:1.05rem;font-weight:800}
         inp.addEventListener("change", () => {
           if (!inp.checked) return;
           inp.disabled = true; lab.classList.add("done"); tx.textContent = "Enviado";
-          markSent(chatId, msg);
+          markSent(chatId, msg, { sig: o.sig, tipo: String(o.tipo || ""), task: meta?.task, level: meta?.level });
           celebrate(byId(chatId)?.name);
         });
         acts.append(lab);
@@ -1063,23 +1151,27 @@ h3{font-size:1.05rem;font-weight:800}
     const sc = el("div","scale"); sc.append(el("span",null,"Hielo"), el("span",null,"Templado"), el("span",null,"Fuego"));
     w.append(top, bar, sc); return w;
   }
-  function resultBody(mode, r, chatId, c){
+  function resultBody(mode, r, chatId, c, lvl){
     const frag = document.createDocumentFragment();
     if (mode === "reply" && r.quimica != null) frag.append(thermo(r.quimica));
     const f = flag(r.pareja); if (f) frag.append(f);
     if (r.lectura) frag.append(el("p","reading", r.lectura));
-    frag.append(options(r.opciones, chatId));
+    frag.append(options(r.opciones, chatId, { task: mode, level: lvl || level }));
     if (r.siguiente_paso){ const n = el("p","next"); n.append(el("b",null,"Siguiente movimiento"), document.createTextNode(r.siguiente_paso)); frag.append(n); }
     return frag;
   }
-  function panelResult(out, mode, r, c){
+  function panelResult(out, mode, r, c, entry){
     out.innerHTML = "";
     const h = el("div","result-head");
     h.append(el("span", "badge" + (c ? " live" : ""), c ? `Para ${c.name}` : "Ejemplo"));
     if (c){ const b = el("button","btn ghost small","Ver chat"); b.onclick = () => openChat(c.id); h.append(b); }
-    out.append(h, resultBody(mode, r, c?.id, c));
+    out.append(h, resultBody(mode, r, c?.id, c, entry?.lvl));
     stagger(out);
-    if (c) Sfx.ding();
+    if (c && entry){
+      // Recordar el último resultado para enseñarlo al volver a abrir la app
+      const last = ls.get("cupid_last") || {}; last[mode] = { chatId: c.id, t: entry.t }; ls.set("cupid_last", last);
+      if (!entry.restored) Sfx.ding();
+    }
   }
 
   /* ================= Ejemplos ================= */
@@ -1148,8 +1240,8 @@ h3{font-size:1.05rem;font-weight:800}
         return;
       }
       const wasNew = pick[tab] === "new";
-      await commit(c, tab, txt, imgs.length, res.data);
-      panelResult(out, tab, res.data, c);
+      const entry = await commit(c, tab, txt, imgs.length, res.data);
+      panelResult(out, tab, res.data, c, entry);
       input.value = ""; files[tab] = []; drawers[tab]?.();
       if (wasNew) resetNewBox(tab);
       pick[tab] = c.id; renderPickers();
@@ -1238,7 +1330,7 @@ h3{font-size:1.05rem;font-weight:800}
         r.mensajes.slice(-8).forEach(m => { const s = el("span"); s.append(el("b",null,(norm(m.de) === "yo" ? "Tú" : c.name) + ": "), document.createTextNode(String(m.texto||""))); mini.append(s); });
         box.append(mini);
       }
-      const res = el("div","result"); res.append(resultBody(e.k, r, i === lastIdx ? c.id : null, c));
+      const res = el("div","result"); res.append(resultBody(e.k, r, i === lastIdx ? c.id : null, c, e.lvl));
       stagger(res); box.append(res); th.append(box);
     });
     [...th.children].forEach((ch, i, all) => ch.style.setProperty("--i", Math.max(0, i - all.length + 4)));
@@ -1377,7 +1469,7 @@ h3{font-size:1.05rem;font-weight:800}
     usage = u; const ch = $("#usageChip"); if (!ch) return;
     ch.hidden = false;
     if (u.premium){ ch.textContent = "Premium"; ch.classList.add("pro"); }
-    else { ch.classList.remove("pro"); ch.textContent = `${Math.max(0, u.limit - (u.used || 0))} gratis hoy`; }
+    else { ch.classList.remove("pro"); ch.textContent = `${Math.max(0, u.limit - (u.used || 0))} gratis`; ch.title = "Mensajes gratis que te quedan hoy"; }
   }
   function toast(t){
     const d = el("div","toast", t); document.body.append(d);
@@ -1411,7 +1503,7 @@ h3{font-size:1.05rem;font-weight:800}
     try {
       const r = await fetch("/api/license", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ license: code }) });
       const j = await r.json();
-      if (j.premium){ license = j.license; ls.set("cupid_license", license); await refreshUsage(); m.textContent = ""; openPaywall(); toast("Premium recuperado"); Sfx.chime(); }
+      if (j.premium){ license = j.license; ls.set("cupid_license", license); Sync.pushMe(); await refreshUsage(); m.textContent = ""; openPaywall(); toast("Premium recuperado"); Sfx.chime(); }
       else m.textContent = "Ese código no está activo. Revisa que esté bien copiado.";
     } catch { m.textContent = "Sin conexión. Prueba otra vez."; }
   };
@@ -1436,10 +1528,192 @@ h3{font-size:1.05rem;font-weight:800}
       try {
         const r = await fetch("/api/license", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ session_id: sid }) });
         const j = await r.json();
-        if (j.license){ license = j.license; ls.set("cupid_license", license); await refreshUsage(); celebrate(null, "¡Ya eres Premium!", "Guarda tu código por si cambias de móvil: " + license); }
+        if (j.license){ license = j.license; ls.set("cupid_license", license); Sync.pushMe(); await refreshUsage(); celebrate(null, "¡Ya eres Premium!", "Guarda tu código por si cambias de móvil: " + license); }
       } catch {}
     }
     if (sid || q.get("pago")) history.replaceState(null, "", location.pathname);
+  }
+
+  /* ================= Cuenta y sincronización ================= */
+  // Sin cuenta: todo vive en este móvil. Con cuenta: además se guarda en la nube y se recupera en cualquier dispositivo.
+  const Sync = {
+    user: null, timers: {}, ready: false,
+    async api(body){
+      const r = await fetch("/api/sync", body ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) } : {});
+      if (r.status === 401){ this.user = null; drawAccount(); throw { code: "unauthorized" }; }
+      if (!r.ok) throw { code: "sync_error", status: r.status };
+      return r.json();
+    },
+    push(chat){
+      if (!this.user || !this.ready) return;
+      clearTimeout(this.timers[chat.id]);
+      this.timers[chat.id] = setTimeout(() => this.api({ op: "put", chat }).catch(e => { if (e.status === 409) toast("Has llegado al máximo de chats en tu cuenta. Borra alguno."); }), 700);
+    },
+    del(id){ if (this.user && this.ready) this.api({ op: "del", id }).catch(() => {}); },
+    pushMe(){
+      if (!this.user || !this.ready || !me) return;
+      clearTimeout(this.timers.__me);
+      this.timers.__me = setTimeout(() => this.api({ op: "me", me: { g: me.g, t: me.t, level, license } }).catch(() => {}), 500);
+    },
+    // Al entrar: mezcla lo que hay en el móvil con lo de la cuenta (gana lo más reciente)
+    async pull(){
+      const j = await this.api();
+      const local = new Map(chats.map(c => [c.id, c]));
+      const toPush = [];
+      for (const sc of j.chats || []){
+        const f = fix(sc), l = local.get(f.id);
+        if (!l || f.updated >= l.updated) local.set(f.id, f); else toPush.push(l);
+      }
+      const server = new Set((j.chats || []).map(c => c.id));
+      for (const l of local.values()) if (!server.has(l.id)) toPush.push(l);
+      chats = [...local.values()].sort((a,b) => b.updated - a.updated);
+      Store.write();
+      if (j.me?.license && !license){ license = j.me.license; ls.set("cupid_license", license); refreshUsage(); }
+      if (j.me?.level){ level = j.me.level; ls.set("cupid_level", level); renderSpice(); }
+      if (j.me?.g && !me){ me = { g: j.me.g, t: j.me.t }; ls.set("cupid_me", me); show("home"); }
+      this.ready = true;
+      toPush.forEach(c => this.api({ op: "put", chat: c }).catch(() => {}));
+      if (!j.me || !j.me.g || (license && j.me.license !== license)) this.pushMe();
+      Store.emit(); restoreLast();
+    }
+  };
+
+  let Auth = null, authSettings = null, acctMode = "signup";
+  const authReady = new Promise(ok => {
+    if (window.CupidAuth) return ok(window.CupidAuth);
+    addEventListener("cupid-auth-ready", () => ok(window.CupidAuth), { once: true });
+    setTimeout(() => ok(window.CupidAuth || null), 8000);
+  });
+  function drawAccount(){
+    const b = $("#acctBtn"); if (!b) return;
+    const u = Sync.user;
+    b.hidden = !Auth;
+    b.classList.toggle("in", !!u);
+    b.textContent = u ? (String(u.email || "?")[0] || "?").toUpperCase() : "Entrar";
+    b.setAttribute("aria-label", u ? `Tu cuenta: ${u.email}` : "Entrar o crear cuenta");
+    $("#storeNote").textContent = u ? `Tus chats se guardan en tu cuenta (${u.email}) y los tienes en cualquier móvil.` : "Tus chats se guardan solo en este móvil. Crea una cuenta para no perderlos.";
+  }
+  function openAccount(mode, intro){
+    acctMode = mode || acctMode;
+    const sh = $("#acct"); sh.hidden = false; $("#acctMsg").textContent = ""; $("#acctMsg").className = "note";
+    const u = Sync.user;
+    $("#acctOut").hidden = !!u; $("#acctIn").hidden = !u; $("#acctReset").hidden = true;
+    $("#acctIntro").hidden = !intro;
+    if (u){ $("#acctEmail").textContent = u.email || ""; $("#acctDel").textContent = "Borrar mi cuenta y mis datos"; delAcct = false; return; }
+    $("#acctTitle").textContent = acctMode === "signup" ? "Crea tu cuenta" : "Entra en tu cuenta";
+    $("#acctGo").textContent = acctMode === "signup" ? "Crear cuenta" : "Entrar";
+    $("#acctSwitch").textContent = acctMode === "signup" ? "Ya tengo cuenta" : "Crear cuenta nueva";
+    $("#acctForgot").hidden = acctMode === "signup";
+    $("#acctPass").autocomplete = acctMode === "signup" ? "new-password" : "current-password";
+    $("#acctGoogle").hidden = !authSettings?.providers?.google;
+  }
+  function closeAccount(){ $("#acct").hidden = true; }
+  $("#acct").addEventListener("click", e => { if (e.target.id === "acct") closeAccount(); });
+  $("#acctClose").onclick = closeAccount;
+  $("#acctSkip").onclick = closeAccount;
+  $("#acctBtn").onclick = () => openAccount();
+  $("#acctSwitch").onclick = () => openAccount(acctMode === "signup" ? "login" : "signup", !$("#acctIntro").hidden);
+  const AUTH_ERR = e => {
+    const m = String(e?.message || "").toLowerCase();
+    if (/invalid|credential|password/.test(m) && acctMode === "login") return "Email o contraseña incorrectos.";
+    if (/already|registered|exists/.test(m)) return "Ya hay una cuenta con ese email. Pulsa \"Ya tengo cuenta\".";
+    if (/confirm/.test(m)) return "Tienes que confirmar tu email primero: revisa tu correo (y la carpeta de spam).";
+    if (/signup.*disabled|disabled/.test(m)) return "Ahora mismo no se pueden crear cuentas nuevas.";
+    if (/identity|not configured|missing/.test(m)) return "Las cuentas aún no están activadas en esta web. Vuelve en un rato.";
+    return "No ha funcionado. Revisa los datos y prueba otra vez.";
+  };
+  $("#acctForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    const email = $("#acctMailIn").value.trim(), pass = $("#acctPass").value, msg = $("#acctMsg"), go = $("#acctGo");
+    if (!/^\S+@\S+\.\S+$/.test(email)){ msg.className = "msg-err"; msg.textContent = "Pon un email válido."; return; }
+    if (pass.length < 8){ msg.className = "msg-err"; msg.textContent = "La contraseña tiene que tener al menos 8 caracteres."; return; }
+    if (!Auth){ msg.className = "msg-err"; msg.textContent = "Las cuentas aún no están activadas en esta web."; return; }
+    go.disabled = true; msg.className = "note"; msg.textContent = acctMode === "signup" ? "Creando tu cuenta…" : "Entrando…";
+    try {
+      if (acctMode === "signup"){
+        const u = await Auth.signup(email, pass);
+        if (!authSettings?.autoconfirm && !u?.confirmedAt){
+          msg.textContent = "Te hemos enviado un email para confirmar tu cuenta. Ábrelo desde este móvil y volverás aquí ya dentro.";
+          go.disabled = false; return;
+        }
+      } else {
+        await Auth.login(email, pass);
+      }
+      // el evento "login" hace el resto
+    } catch (err){ msg.className = "msg-err"; msg.textContent = AUTH_ERR(err); Sfx.bonk(); }
+    go.disabled = false;
+  });
+  $("#acctGoogle").onclick = () => { try { Auth.oauthLogin("google"); } catch { $("#acctMsg").textContent = "No se ha podido abrir Google."; } };
+  $("#acctForgot").onclick = async () => {
+    const email = $("#acctMailIn").value.trim(), msg = $("#acctMsg");
+    if (!/^\S+@\S+\.\S+$/.test(email)){ msg.className = "msg-err"; msg.textContent = "Escribe tu email arriba y vuelve a pulsar."; return; }
+    try { await Auth.requestPasswordRecovery(email); msg.className = "note"; msg.textContent = "Si hay una cuenta con ese email, te llegará un enlace para cambiar la contraseña."; }
+    catch { msg.className = "msg-err"; msg.textContent = "No se ha podido enviar. Prueba en un rato."; }
+  };
+  $("#acctNewPassGo").onclick = async () => {
+    const p = $("#acctNewPass").value, msg = $("#acctMsg");
+    if (p.length < 8){ msg.className = "msg-err"; msg.textContent = "Mínimo 8 caracteres."; return; }
+    try { await Auth.updateUser({ password: p }); msg.className = "note"; msg.textContent = "Contraseña cambiada."; setTimeout(closeAccount, 1200); }
+    catch { msg.className = "msg-err"; msg.textContent = "No se ha podido cambiar. Prueba otra vez."; }
+  };
+  $("#acctOutBtn").onclick = async () => {
+    try { await Auth.logout(); } catch {}
+    // En un móvil compartido no se quedan los chats: siguen en la cuenta
+    chats = []; Store.write(); Sync.user = null; Sync.ready = false;
+    ls.set("cupid_last", {}); license = ""; ls.set("cupid_license", "");
+    drawAccount(); closeAccount(); Store.emit(); refreshUsage(); toast("Sesión cerrada. Tus chats siguen guardados en tu cuenta.");
+  };
+  let delAcct = false;
+  $("#acctDel").onclick = async () => {
+    if (!delAcct){ delAcct = true; $("#acctDel").textContent = "¿Seguro? Se borran tu cuenta y todos tus chats. Pulsa otra vez"; return; }
+    try { await Sync.api({ op: "wipe" }); } catch {}
+    try { await Auth.logout(); } catch {}
+    chats = []; Store.write(); Sync.user = null; Sync.ready = false; ls.set("cupid_last", {});
+    drawAccount(); closeAccount(); Store.emit(); toast("Cuenta y datos borrados.");
+  };
+  async function onLogin(u){
+    Sync.user = u; drawAccount();
+    try { await Sync.pull(); } catch {}
+    if (!$("#acct").hidden){ closeAccount(); toast("Dentro. Tus chats ya se guardan en tu cuenta."); Sfx.chime(); }
+  }
+  async function initAuth(){
+    Auth = await authReady; if (!Auth){ drawAccount(); return; }
+    try { authSettings = await Auth.getSettings(); } catch { authSettings = null; Auth = null; drawAccount(); return; }
+    Auth.onAuthChange((ev, u) => {
+      if (ev === "login" && u && Sync.user?.id !== u.id) onLogin(u);
+      if (ev === "logout"){ Sync.user = null; drawAccount(); }
+      if (ev === "recovery"){ Sync.user = u; drawAccount(); openAccount(); $("#acctIn").hidden = true; $("#acctReset").hidden = false; $("#acctMsg").textContent = "Escribe tu nueva contraseña."; }
+    });
+    try { await Auth.handleAuthCallback(); } catch {}
+    let u = null; try { u = await Auth.getUser(); } catch {}
+    if (u && Sync.user?.id !== u.id) await onLogin(u); else drawAccount();
+  }
+
+  /* ================= Sugerencias ================= */
+  $("#suggBtn").onclick = () => { $("#sugg").hidden = false; $("#suggIn").focus(); };
+  $("#suggClose").onclick = () => $("#sugg").hidden = true;
+  $("#sugg").addEventListener("click", e => { if (e.target.id === "sugg") $("#sugg").hidden = true; });
+  $("#suggGo").onclick = async () => {
+    const t = $("#suggIn").value.trim();
+    if (t.length < 3){ $("#suggMsg").textContent = "Cuéntanos un poco más."; return; }
+    try {
+      const r = await fetch("/api/feedback", { method: "POST", headers: { "content-type": "application/json", "x-device": deviceId }, body: JSON.stringify({ event: "suggestion", text: t }) });
+      if (!r.ok) throw 0;
+      $("#suggIn").value = ""; $("#sugg").hidden = true; toast("Gracias. Lo leemos todo."); Sfx.chime();
+    } catch { $("#suggMsg").textContent = "No se ha podido enviar. Prueba en un rato."; }
+  };
+
+  /* ================= Volver a donde lo dejaste ================= */
+  function restoreLast(){
+    const last = ls.get("cupid_last") || {};
+    ["open","reply"].forEach(tab => {
+      const L = last[tab]; if (!L) return;
+      const c = byId(L.chatId); const e = c?.entries.find(x => x.t === L.t);
+      if (!c || !e) return;
+      panelResult($(`#${tab}Out`), tab, e.r, c, { ...e, restored: true });
+      if (pick[tab] === "new" && !$(`#${tab}-name`).value) pick[tab] = c.id;
+    });
+    renderPickers();
   }
 
   /* ================= App instalable ================= */
@@ -1462,13 +1736,14 @@ h3{font-size:1.05rem;font-weight:800}
   buildUploads();
   show(me ? "home" : "welcome");
   Store.init().then(() => {
-    $("#storeNote").textContent = "Tus chats se guardan solo en este móvil. Nadie más los ve.";
-    renderPickers(); renderList();
+    drawAccount(); renderPickers(); renderList(); restoreLast();
+    initAuth();
   });
   const startTab = new URLSearchParams(location.search).get("tab");
   if (me && ["open","reply","chats","prof"].includes(startTab)){ goTab("#tab-" + startTab); if (startTab === "chats") Store.init().then(showList); }
   refreshUsage().then(handleReturnFromStripe);
 })();
 </script>
+<script type="module" src="/auth.js"></script>
 </body>
 </html>
