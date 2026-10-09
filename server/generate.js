@@ -6,7 +6,7 @@ import { cleanInput, buildTask } from "./_prompts.js";
 export default async function handler(req, res) {
   if (req.method === "GET") return usage(req, res);
   if (req.method !== "POST") return send(res, 405, { error: "method_not_allowed" });
-  if (!CFG.anthropicKey) return send(res, 500, { error: "not_configured", message: "Falta ANTHROPIC_API_KEY en el servidor." });
+  if (!CFG.anthropicKey) return send(res, 500, { error: "not_configured", message: "La IA aún no está activa: en Netlify se activa sola tras el primer deploy de producción." });
 
   let body;
   try { body = await readJson(req); } catch (e) { return send(res, e.status || 400, { error: e.status === 413 ? "too_large" : "bad_request" }); }

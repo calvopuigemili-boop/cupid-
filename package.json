@@ -4,12 +4,15 @@
   "private": true,
   "type": "module",
   "description": "Cupid@ — tu colega crack para ligar en Instagram",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "netlify dev",
     "deploy": "netlify deploy --prod"
   },
   "dependencies": {
-    "@netlify/blobs": "^8.1.0"
+    "@anthropic-ai/sdk": "0.127.0",
+    "@netlify/blobs": "11.1.0"
   }
 }

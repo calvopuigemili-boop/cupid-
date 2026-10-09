@@ -4,7 +4,7 @@
 
 **Imprescindible**
 - [ ] Rellenar todo lo marcado en amarillo en `privacidad.html` y `terminos.html` (nombre, NIF, dirección, email, fecha, precio).
-- [ ] Límite de gasto mensual puesto en la consola de Anthropic.
+- [ ] Revisar en Netlify (Usage) cuántos créditos gasta la app tras la primera semana.
 - [ ] Probar el flujo completo en el móvil: bienvenida → Abrir con capturas → "Lo he enviado" (animación) → Responder → Chats → Perfil.
 - [ ] Probar que al pasar de 8 mensajes salta la pantalla de Premium.
 - [ ] Probar el pago en modo test (tarjeta `4242 4242 4242 4242`), restaurar el código en otro navegador y cancelar desde "Gestionar suscripción".
@@ -36,15 +36,16 @@
 
 | Qué | Coste |
 |---|---|
-| Netlify (plan gratuito, permite uso comercial) | 0 € para empezar |
+| Netlify (plan gratuito, permite uso comercial; incluye la IA con 300 créditos al mes) | 0 € para empezar |
+| Netlify Personal, cuando crezca | 9 $/mes, 1.000 créditos |
 | Dominio | 10-20 € al año |
 | Stripe | comisión por cada pago, sin cuota fija |
 
-**Coste de la IA por uso.** Con el modelo rápido (`claude-haiku-5-5`, el que viene puesto) cada mensaje generado cuesta muy poco, del orden de una décima de céntimo, algo más si lleva capturas. Un usuario gratis que gaste sus 8 diarios sale por céntimos al mes. Comprueba la tarifa exacta en la [página de precios de Anthropic](https://platform.claude.com/docs/en/about-claude/pricing) antes de lanzar.
+**Coste de la IA por uso.** La IA se paga con los créditos de Netlify (1 $ = 180 créditos). Con el modelo rápido (`claude-haiku-5-5`, el que viene puesto) cada mensaje generado cuesta muy poco, del orden de una décima de céntimo, algo más si lleva capturas. Un usuario gratis que gaste sus 8 diarios sale por céntimos al mes. Con los 300 créditos gratis del plan Free llegan para cientos de mensajes al mes, pero esos créditos también se gastan en tráfico y deploys: si se acaban, la web se pausa hasta el mes siguiente. Si la app despega, pasa al plan Personal o pon tu propia clave de Anthropic.
 
 **Premium.** Con Haiku y 100 mensajes al día, a 4,99 €/mes te queda margen incluso con los que más lo usan. Si quieres ofrecer "un cerebro más listo" poniendo `MODEL_PREMIUM=claude-sonnet-5-5`, cada mensaje cuesta bastante más: sube el precio (por ejemplo 9,99 €) y baja `PREMIUM_DAILY` a 40-60, o perderás dinero con los usuarios intensos.
 
-**Qué mirar cada semana:** gasto en la consola de Anthropic, número de suscripciones en Stripe y cuántos usuarios llegan al límite gratis.
+**Qué mirar cada semana:** créditos gastados en Netlify (Usage), número de suscripciones en Stripe y cuántos usuarios llegan al límite gratis.
 
 ## 4. Siguiente fase: tiendas de apps
 

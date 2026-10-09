@@ -14,13 +14,14 @@ Proyecto en Netlify: **cupida-app** → https://cupida-app.netlify.app
 
 Los contadores del plan gratis y los códigos Premium se guardan en **Netlify Blobs**, que viene incluido: no hace falta ninguna base de datos aparte.
 
+**La IA no necesita cuenta de Anthropic.** La pasarela de IA de Netlify (AI Gateway) conecta con Claude sola y lo cobra de los créditos de Netlify. Se activa tras el primer deploy de producción. **No crees la variable `ANTHROPIC_API_KEY`**: si la pones, Netlify deja de usar su pasarela y usa tu clave. El plan gratuito trae 300 créditos al mes; si se acaban, la web se pausa hasta el mes siguiente. Para más uso, pasa al plan Personal o Pro de Netlify, o pon tu propia clave de Anthropic.
+
 ## Variables de entorno
 
 En Netlify → Project configuration → Environment variables (con alcance **Functions**):
 
 | Variable | Obligatoria | Qué es |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Sí | Tu clave de [console.anthropic.com](https://console.anthropic.com). Ponle un límite de gasto mensual allí. |
 | `SITE_URL` | Ya puesta | `https://cupida-app.netlify.app` (cámbiala si pones dominio propio). |
 | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID` | Para cobrar | Clave secreta de Stripe y el `price_...` de tu suscripción mensual. Sin ellas, Premium dice "muy pronto". |
 | `FREE_DAILY`, `PREMIUM_DAILY`, `READS_DAILY`, `READS_DAILY_PREMIUM`, `FREE_DAILY_PER_IP` | No | Límites (por defecto 8, 100, 30, 150, 40). |

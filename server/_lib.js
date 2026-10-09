@@ -1,7 +1,8 @@
+import Anthropic from "@anthropic-ai/sdk";
 // Utilidades compartidas por las funciones de /api (Vercel no publica archivos que empiezan por "_").
 
 export const CFG = {
-  anthropicKey: process.env.ANTHROPIC_API_KEY,
+  get anthropicKey() { return process.env.ANTHROPIC_API_KEY; },
   modelFree: process.env.MODEL_FREE || "claude-haiku-5-5",
   modelPremium: process.env.MODEL_PREMIUM || "claude-haiku-5-5",
   modelRead: process.env.MODEL_READ || "claude-haiku-5-5",
@@ -107,21 +108,19 @@ export function newLicense() {
   return `CUP-${part()}-${part()}-${part()}`;
 }
 
-/* ---------- Claude ---------- */
+/* ---------- Claude ----------
+   Usa el SDK oficial. En Netlify, la pasarela de IA (AI Gateway) inyecta ANTHROPIC_API_KEY y
+   ANTHROPIC_BASE_URL sola, así que no hace falta cuenta de Anthropic. Fuera de Netlify, pon tu clave. */
+let client = null;
 export async function claude({ model, system, content, maxTokens = 1500 }) {
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "x-api-key": CFG.anthropicKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content }] }),
-  });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok) {
-    const code = r.status === 429 || r.status === 529 ? "busy" : r.status === 400 && /image/i.test(j?.error?.message || "") ? "image_rejected" : "upstream_error";
-    throw Object.assign(new Error(j?.error?.message || "claude_error"), { status: 502, code });
+  if (!client) client = new Anthropic();
+  let j;
+  try {
+    j = await client.messages.create({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content }] });
+  } catch (e) {
+    const st = e?.status;
+    const code = st === 429 || st === 529 ? "busy" : st === 400 && /image/i.test(e?.message || "") ? "image_rejected" : "upstream_error";
+    throw Object.assign(new Error(e?.message || "claude_error"), { status: 502, code });
   }
   const text = (j.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
   if (j.stop_reason === "refusal" || !text) throw Object.assign(new Error("refused"), { status: 422, code: "refused" });
