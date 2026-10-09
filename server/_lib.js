@@ -6,10 +6,10 @@ export const CFG = {
   modelFree: process.env.MODEL_FREE || "claude-haiku-5-5",
   modelPremium: process.env.MODEL_PREMIUM || "claude-haiku-5-5",
   modelRead: process.env.MODEL_READ || "claude-haiku-5-5",
-  freeDaily: Number(process.env.FREE_DAILY || 8),          // generaciones gratis por dispositivo y día
-  freeDailyPerIp: Number(process.env.FREE_DAILY_PER_IP || 40), // tope por red (institutos, wifis compartidas)
+  freeDaily: Number(process.env.FREE_DAILY || 150),        // tope anti-abuso por móvil y día (la app es gratis y sin límite visible)
+  freeDailyPerIp: Number(process.env.FREE_DAILY_PER_IP || 600), // tope anti-abuso por red (institutos, wifis compartidas)
   premiumDaily: Number(process.env.PREMIUM_DAILY || 100),   // generaciones Premium por día (tope anti-abuso)
-  readsDaily: Number(process.env.READS_DAILY || 30),        // tandas de capturas leídas por dispositivo y día (gratis)
+  readsDaily: Number(process.env.READS_DAILY || 150),        // tandas de capturas leídas por dispositivo y día (gratis)
   readsDailyPremium: Number(process.env.READS_DAILY_PREMIUM || 150),
   stripeKey: process.env.STRIPE_SECRET_KEY,
   stripePrice: process.env.STRIPE_PRICE_ID,

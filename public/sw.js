@@ -1,5 +1,5 @@
 // Service worker de Cupid@: la app abre al instante y sin conexión (la IA sí necesita internet).
-const VERSION = "cupida-v2";
+const VERSION = "cupida-v3";
 const SHELL = ["/", "/manifest.webmanifest", "/icons/logo.webp", "/icons/cupid.webp", "/icons/icon-192.png", "/icons/icon-512.png", "/auth.js", "/privacidad", "/terminos"];
 
 self.addEventListener("install", e => {

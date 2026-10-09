@@ -3,15 +3,26 @@
 import crypto from "node:crypto";
 import { getStore } from "@netlify/blobs";
 
-const secret = () => process.env.FEEDBACK_SECRET || "cupida-dev-secret";
 const store = () => getStore({ name: "learn", consistency: "strong" });
 
-// Firma de cada mensaje generado: solo se aceptan votos sobre mensajes que creó el servidor.
-export function sign(task, level, tipo, msg) {
-  return crypto.createHmac("sha256", secret()).update([task, level, tipo, msg].join("|")).digest("base64url").slice(0, 24);
+// Clave para firmar: FEEDBACK_SECRET si existe; si no, una aleatoria que se crea una vez y se guarda en Blobs.
+let cachedSecret = null;
+async function secret() {
+  if (process.env.FEEDBACK_SECRET) return process.env.FEEDBACK_SECRET;
+  if (cachedSecret) return cachedSecret;
+  const st = store();
+  let rec = await st.get("config/secret", { type: "json" }).catch(() => null);
+  if (!rec?.v) { rec = { v: crypto.randomBytes(32).toString("base64url") }; await st.setJSON("config/secret", rec, { onlyIfNew: true }).catch(() => {}); rec = (await st.get("config/secret", { type: "json" }).catch(() => null)) || rec; }
+  cachedSecret = rec.v;
+  return cachedSecret;
 }
-export function verify(task, level, tipo, msg, sig) {
-  const good = sign(task, level, tipo, msg);
+
+// Firma de cada mensaje generado: solo se aceptan votos sobre mensajes que creó el servidor.
+export async function sign(task, level, tipo, msg) {
+  return crypto.createHmac("sha256", await secret()).update([task, level, tipo, msg].join("|")).digest("base64url").slice(0, 24);
+}
+export async function verify(task, level, tipo, msg, sig) {
+  const good = await sign(task, level, tipo, msg);
   return typeof sig === "string" && sig.length === good.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(good));
 }
 

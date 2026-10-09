@@ -1,6 +1,6 @@
 // POST /api/generate — genera abridores, respuestas, análisis de perfil o lee capturas.
 // Cabeceras: x-device (id aleatorio del móvil), x-license (código Premium, opcional).
-import { CFG, send, readJson, clientIp, today, bump, peek, licenseStatus, claude, parseJson } from "./_lib.js";
+import { CFG, send, readJson, clientIp, today, bump, peek, claude, parseJson } from "./_lib.js";
 import { cleanInput, buildTask } from "./_prompts.js";
 import { examples, examplesBlock, sign } from "./_learn.js";
 
@@ -18,9 +18,9 @@ export default async function handler(req, res) {
   if (device.length < 16) return send(res, 400, { error: "bad_request" });
   const ip = clientIp(req);
   const day = today();
-  const lic = await licenseStatus(String(req.headers["x-license"] || "")).catch(() => ({ premium: false }));
+  const lic = { premium: false };   // Cupid@ es gratis: un solo nivel para todos
 
-  // Límites
+  // Topes anti-abuso (altos: el uso normal nunca llega)
   try {
     if (x.task === "read") {
       const n = await bump(`r:${day}:${device}`);
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
     if (!json) return send(res, 200, { text });
     const data = parseJson(text);
     // Firma cada opción para poder aceptar luego votos solo sobre mensajes generados aquí
-    if (Array.isArray(data.opciones)) data.opciones.forEach(o => { if (o && typeof o.mensaje === "string") o.sig = sign(x.task, x.level, String(o.tipo || ""), o.mensaje); });
+    if (Array.isArray(data.opciones)) for (const o of data.opciones) { if (o && typeof o.mensaje === "string") o.sig = await sign(x.task, x.level, String(o.tipo || ""), o.mensaje).catch(() => undefined); }
     // Si lo pegado no era una conversación, no se gasta un mensaje
     const counts = !(x.task === "reply" && data.es_conversacion === false);
     const limit = lic.premium ? CFG.premiumDaily : CFG.freeDaily;
@@ -63,8 +63,5 @@ export default async function handler(req, res) {
 }
 
 async function usage(req, res) {
-  const device = String(req.headers["x-device"] || "").replace(/[^a-zA-Z0-9-]/g, "").slice(0, 64);
-  const lic = await licenseStatus(String(req.headers["x-license"] || "")).catch(() => ({ premium: false }));
-  const used = device ? await peek(`g:${today()}:${device}`).catch(() => 0) : 0;
-  send(res, 200, { usage: { used, limit: lic.premium ? CFG.premiumDaily : CFG.freeDaily, premium: lic.premium }, stripe: Boolean(CFG.stripeKey && CFG.stripePrice) });
+  send(res, 200, { free: true });
 }

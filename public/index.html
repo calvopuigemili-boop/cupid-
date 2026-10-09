@@ -297,7 +297,7 @@ h3{font-size:1.05rem;font-weight:800}
 .fx-p{position:absolute;width:18px;height:18px;pointer-events:none}
 .fx-text{position:absolute;left:0;right:0;bottom:16%;text-align:center;color:#fff;font-family:var(--f-display);font-weight:800;font-size:clamp(1.6rem,6vw,2.4rem);letter-spacing:-.02em;opacity:0;padding-inline:16px;text-shadow:0 4px 18px rgba(0,0,0,.3)}
 .fx-text small{display:block;font-family:var(--f-body);font-weight:600;font-size:1rem;opacity:.9;margin-top:4px}
-/* Web pública: contador, Premium, instalar, avisos */
+/* Web pública: cuenta, instalar, avisos */
 .chipbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:.8rem;font-weight:700;cursor:pointer;white-space:nowrap;color:var(--accent);font-variant-numeric:tabular-nums}
 .chipbtn.pro{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
 .chipbtn.install{color:var(--ink)}
@@ -347,7 +347,6 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
   </div>
   <div class="right">
     <button class="chipbtn install" id="installBtn" type="button" hidden>Instalar</button>
-    <button class="chipbtn" id="usageChip" type="button" hidden></button>
     <button class="chipbtn acct" id="acctBtn" type="button" hidden>Entrar</button>
     <button class="sound" id="soundBtn" type="button" aria-label="Sonido activado" aria-pressed="true"></button>
     <button class="who" id="whoBtn" hidden>Perfil</button>
@@ -361,7 +360,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
   <div class="hero" id="hero">
     <span class="cupid-img" role="img" aria-label="Cupido de Cupid@ apuntando con su arco"></span>
     <h1>Que no te vuelvan a dejar <em>en visto</em>.</h1>
-    <p class="lead">Tu colega crack de Instagram: abridores con descaro, qué contestar cuando se enfría y un chat guardado por cada persona.</p>
+    <p class="lead">Tu colega crack de Instagram: abridores con descaro, qué contestar cuando se enfría y un chat guardado por cada persona. Gratis y sin límites.</p>
   </div>
   <form id="onb" class="stack card" novalidate>
     <fieldset>
@@ -509,35 +508,6 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
   <p class="fx-text" id="fxText"></p>
 </div>
 
-<!-- Premium -->
-<div class="sheet" id="paywall" hidden role="dialog" aria-modal="true" aria-labelledby="pwTitle">
-  <div class="card">
-    <button class="x" id="pwClose" type="button" aria-label="Cerrar">✕</button>
-    <span class="cupid-img" aria-hidden="true"></span>
-    <h2 id="pwTitle">Hazte Premium</h2>
-    <div id="pwBuyBox" class="stack">
-      <ul class="perks">
-        <li>Hasta 100 mensajes al día en vez de 8</li>
-        <li>Lee hasta 5 veces más capturas al día</li>
-        <li>Cancelas cuando quieras, sin permanencia</li>
-      </ul>
-      <div class="price" id="pwPrice"></div>
-      <button class="btn block" id="pwBuy" type="button">Hazte Premium</button>
-      <p class="note" id="pwOff" hidden style="text-align:center">Los pagos se activan muy pronto. De momento tienes tus mensajes gratis cada día.</p>
-    </div>
-    <div id="pwPro" class="stack" hidden>
-      <p class="note">Tu código Premium. Guárdalo: con él recuperas Premium si cambias de móvil o borras la app.</p>
-      <div class="code" id="pwCode"></div>
-      <div class="row2"><button class="btn ghost small" id="pwCopy" type="button">Copiar código</button><button class="btn ghost small" id="pwManage" type="button">Gestionar suscripción</button></div>
-    </div>
-    <div class="field">
-      <label class="label" for="pwInput">¿Tienes un código Premium?</label>
-      <div class="row2"><input type="text" id="pwInput" placeholder="CUP-XXXX-XXXX-XXXX" autocomplete="off" maxlength="20"><button class="btn small" id="pwRestore" type="button">Restaurar</button></div>
-      <p class="msg-err" id="pwRestoreMsg"></p>
-    </div>
-  </div>
-</div>
-
 <!-- Cuenta -->
 <div class="sheet" id="acct" hidden role="dialog" aria-modal="true" aria-labelledby="acctTitle">
   <div class="card">
@@ -560,7 +530,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     </div>
     <div id="acctIn" class="stack" hidden>
       <h2>Tu cuenta</h2>
-      <p class="note" style="text-align:center"><strong id="acctEmail"></strong><br>Tus chats, tu perfil y Premium se guardan en tu cuenta.</p>
+      <p class="note" style="text-align:center"><strong id="acctEmail"></strong><br>Tus chats y tu perfil se guardan en tu cuenta.</p>
       <button class="btn ghost block" id="acctOutBtn" type="button">Cerrar sesión</button>
       <button class="danger" id="acctDel" type="button" style="justify-self:center">Borrar mi cuenta y mis datos</button>
     </div>
@@ -955,8 +925,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
 
   /* ================= Servidor de IA ================= */
   const ERR = {
-    free_limit:"Se han acabado tus mensajes gratis de hoy. Mañana tienes más, o hazte Premium.",
-    premium_limit:"Has llegado al máximo de hoy incluso en Premium. Vuelve mañana.",
+    free_limit:"Hoy le has dado mucha caña a Cupid@. Descansa y mañana seguimos.",
     reads_limit:"Has leído muchas capturas hoy. Vuelve mañana.",
     busy:"Hay mucha gente ligando ahora mismo. Prueba en unos segundos.",
     offline:"Sin conexión. Revisa tu internet y prueba otra vez.",
@@ -980,13 +949,13 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     try {
       r = await fetch("/api/generate", {
         method: "POST", signal,
-        headers: { "content-type": "application/json", "x-device": deviceId, "x-license": license },
+        headers: { "content-type": "application/json", "x-device": deviceId },
         body: JSON.stringify({ task, me, level, ...payload })
       });
     } catch (e){ throw { code: e?.name === "AbortError" ? "cancelled" : "offline" }; }
     const j = await r.json().catch(() => ({}));
     if (j.usage) setUsage(j.usage);
-    if (!r.ok){ if (j.error === "free_limit") setTimeout(openPaywall, 300); throw { code: j.error || "upstream_error" }; }
+    if (!r.ok) throw { code: j.error || "upstream_error" };
     return j;
   }
   const FICHA_READ = name => ({ kind: "ficha", name });
@@ -1462,77 +1431,14 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     } finally { pBusy = null; $("#profGo").textContent = "Analizar mi perfil"; }
   };
 
-  /* ================= Premium ================= */
-  const PRICE_TEXT = "4,99 € al mes";      // cámbialo por el precio que pongas en Stripe
-  let payEnabled = false;
-  function setUsage(u){
-    usage = u; const ch = $("#usageChip"); if (!ch) return;
-    ch.hidden = false;
-    if (u.premium){ ch.textContent = "Premium"; ch.classList.add("pro"); }
-    else { ch.classList.remove("pro"); ch.textContent = `${Math.max(0, u.limit - (u.used || 0))} gratis`; ch.title = "Mensajes gratis que te quedan hoy"; }
-  }
+  /* ================= Avisos ================= */
   function toast(t){
     const d = el("div","toast", t); document.body.append(d);
     setTimeout(() => d.classList.add("out"), 2600); setTimeout(() => d.remove(), 3100);
   }
-  function openPaywall(){
-    const pw = $("#paywall"); pw.hidden = false; Sfx.select();
-    $("#pwPrice").textContent = PRICE_TEXT;
-    const isPro = usage?.premium && license;
-    $("#pwBuy").hidden = !!isPro || !payEnabled;
-    $("#pwOff").hidden = payEnabled || !!isPro;
-    $("#pwPro").hidden = !isPro;
-    $("#pwCode").textContent = license || "";
-    $("#pwTitle").textContent = isPro ? "Ya eres Premium" : (usage && !usage.premium && usage.used >= usage.limit ? "Se acabaron tus mensajes gratis de hoy" : "Hazte Premium");
-    $("#pwRestoreMsg").textContent = "";
-  }
-  function closePaywall(){ $("#paywall").hidden = true; }
-  $("#paywall").addEventListener("click", e => { if (e.target.id === "paywall") closePaywall(); });
-  $("#pwClose").onclick = closePaywall;
-  $("#usageChip").onclick = openPaywall;
-  $("#pwBuy").onclick = async () => {
-    const b = $("#pwBuy"); b.disabled = true; b.textContent = "Abriendo el pago…";
-    try {
-      const r = await fetch("/api/checkout", { method: "POST" }); const j = await r.json();
-      if (j.url) location.href = j.url; else throw 0;
-    } catch { $("#pwRestoreMsg").textContent = "No se ha podido abrir el pago. Prueba en un rato."; b.disabled = false; b.textContent = "Hazte Premium"; }
-  };
-  $("#pwRestore").onclick = async () => {
-    const code = $("#pwInput").value.trim().toUpperCase(); const m = $("#pwRestoreMsg");
-    if (!code){ m.textContent = "Pega tu código Premium (empieza por CUP-)."; return; }
-    try {
-      const r = await fetch("/api/license", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ license: code }) });
-      const j = await r.json();
-      if (j.premium){ license = j.license; ls.set("cupid_license", license); Sync.pushMe(); await refreshUsage(); m.textContent = ""; openPaywall(); toast("Premium recuperado"); Sfx.chime(); }
-      else m.textContent = "Ese código no está activo. Revisa que esté bien copiado.";
-    } catch { m.textContent = "Sin conexión. Prueba otra vez."; }
-  };
-  $("#pwManage").onclick = async () => {
-    try {
-      const r = await fetch("/api/portal", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ license }) });
-      const j = await r.json(); if (j.url) location.href = j.url; else throw j;
-    } catch (e){ $("#pwRestoreMsg").textContent = e?.message || "No se ha podido abrir la gestión. Prueba en un rato."; }
-  };
-  $("#pwCopy").onclick = async () => { try { await navigator.clipboard.writeText(license); toast("Código copiado"); } catch {} };
-  async function refreshUsage(){
-    try {
-      const r = await fetch("/api/generate", { headers: { "x-device": deviceId, "x-license": license } });
-      const j = await r.json(); if (j.usage) setUsage(j.usage); payEnabled = !!j.stripe;
-    } catch {}
-  }
-  async function handleReturnFromStripe(){
-    const q = new URLSearchParams(location.search);
-    const sid = q.get("session_id");
-    if (q.get("pago") === "cancelado") toast("Pago cancelado. No se te ha cobrado nada.");
-    if (sid){
-      try {
-        const r = await fetch("/api/license", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ session_id: sid }) });
-        const j = await r.json();
-        if (j.license){ license = j.license; ls.set("cupid_license", license); Sync.pushMe(); await refreshUsage(); celebrate(null, "¡Ya eres Premium!", "Guarda tu código por si cambias de móvil: " + license); }
-      } catch {}
-    }
-    if (sid || q.get("pago")) history.replaceState(null, "", location.pathname);
-  }
+  // Cupid@ es gratis: sin contadores ni Premium
+  function setUsage(){}
+  async function refreshUsage(){}
 
   /* ================= Cuenta y sincronización ================= */
   // Sin cuenta: todo vive en este móvil. Con cuenta: además se guarda en la nube y se recupera en cualquier dispositivo.
@@ -1741,7 +1647,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
   });
   const startTab = new URLSearchParams(location.search).get("tab");
   if (me && ["open","reply","chats","prof"].includes(startTab)){ goTab("#tab-" + startTab); if (startTab === "chats") Store.init().then(showList); }
-  refreshUsage().then(handleReturnFromStripe);
+
 })();
 </script>
 <script type="module" src="/auth.js"></script>

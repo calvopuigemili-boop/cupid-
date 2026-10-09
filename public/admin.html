@@ -33,8 +33,8 @@ ul{margin:0;padding-left:18px;display:grid;gap:8px}
 <body>
 <main>
   <h1>Panel de Cupid@</h1>
-  <p class="muted">Lo que la gente sugiere y los mensajes de los que la IA está aprendiendo. Solo entra quien tenga la clave de administración.</p>
-  <form class="card row" id="f"><input type="password" id="k" placeholder="Clave de administración" autocomplete="current-password"><button>Ver</button></form>
+  <p class="muted">Lo que la gente sugiere y los mensajes de los que la IA está aprendiendo. Solo lo ve la cuenta dueña de Cupid@.</p>
+  <div class="card row" id="login" hidden><span style="flex:1">Entra en Cupid@ con tu cuenta de dueño (botón <strong>Entrar</strong>) y vuelve a esta página.</span><a href="/"><button type="button">Ir a Cupid@</button></a></div>
   <p class="muted" id="msg"></p>
   <section class="card" id="sugg" hidden><h2>Sugerencias</h2><ul id="suggList"></ul></section>
   <section class="card" id="pools" hidden>
@@ -64,20 +64,23 @@ ul{margin:0;padding-left:18px;display:grid;gap:8px}
       rows.append(tr);
     });
   }
-  $("#f").addEventListener("submit", async e => {
-    e.preventDefault();
+  async function load(){
     $("#msg").textContent = "Cargando…";
     try {
-      const r = await fetch("/api/feedback?key=" + encodeURIComponent($("#k").value));
-      if (r.status === 403){ $("#msg").textContent = "Clave incorrecta."; return; }
+      const r = await fetch("/api/feedback", { credentials: "same-origin" });
+      if (r.status === 403){ $("#msg").textContent = ""; $("#login").hidden = false; return; }
       data = await r.json(); $("#msg").textContent = "";
       const ul = $("#suggList"); ul.innerHTML = "";
       if (!data.suggestions.length){ const li = document.createElement("li"); li.textContent = "Aún no hay sugerencias."; ul.append(li); }
       data.suggestions.forEach(s => { const li = document.createElement("li"); li.textContent = `${new Date(s.at).toLocaleString("es-ES")} — ${s.text}`; ul.append(li); });
       $("#sugg").hidden = false; $("#pools").hidden = false; draw();
     } catch { $("#msg").textContent = "No se ha podido cargar. Prueba otra vez."; }
-  });
+  }
+  // Refresca la sesión (si hay) antes de pedir los datos
+  const go = async () => { try { await window.CupidAuth?.getUser(); } catch {} load(); };
+  if (window.CupidAuth) go(); else { addEventListener("cupid-auth-ready", go, { once: true }); setTimeout(() => { if (!data) load(); }, 4000); }
 })();
 </script>
+<script type="module" src="/auth.js"></script>
 </body>
 </html>
