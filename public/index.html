@@ -269,6 +269,8 @@ h3{font-size:1.05rem;font-weight:800}
 .result > *, .entry, .anim .person, .preview .row{animation:pop .5s cubic-bezier(.2,1.2,.4,1) both;animation-delay:calc(var(--i,0) * 70ms)}
 .thread.still .entry, .thread.still .result > *{animation:none}
 .msg-err{animation:shake .35s ease}
+.err-box{display:grid;gap:10px;justify-items:start}
+.row-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .thermo .pin{transition:left 1.1s cubic-bezier(.2,1.3,.4,1)}
 .tab{transition:background .2s,color .2s,transform .1s}
 .tab:active{transform:scale(.96)}
@@ -937,9 +939,17 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     not_configured:"La app aún no está configurada del todo. Vuelve en un rato.",
     image_rejected:"Alguna captura no ha entrado. Prueba con otra imagen (JPG o PNG).",
     refused:"Eso se ha pasado de rosca y no lo puedo generar. Cambia el enfoque o baja un nivel el picante.",
-    invalid_json:"La respuesta ha salido rara. Dale otra vez."
+    invalid_json:"La IA se ha liado con la respuesta. Dale a Reintentar.",
+    timeout:"La IA ha tardado demasiado. Dale a Reintentar (si subiste muchas capturas, prueba con menos).",
+    upstream_error:"La IA no ha respondido bien esta vez. Dale a Reintentar."
   };
-  const errText = e => ERR[e?.code] || "Algo ha fallado por el camino. Dale otra vez.";
+  const errText = e => ERR[e?.code] || "Algo ha fallado por el camino. Dale a Reintentar.";
+  // Error con botón de reintentar (lo escrito y las capturas se quedan donde estaban)
+  function errBox(e, retry){
+    const box = el("div","err-box"); box.append(el("p","msg-err", errText(e)));
+    if (retry && !["free_limit","reads_limit","not_configured"].includes(e?.code)){ const b = el("button","btn small ghost","Reintentar"); b.type = "button"; b.onclick = retry; box.append(b); }
+    return box;
+  }
   const deviceId = (() => {
     let d = ls.get("cupid_device");
     if (!d || String(d).length < 16){ d = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)); ls.set("cupid_device", d); }
@@ -947,7 +957,8 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
   })();
   let license = ls.get("cupid_license") || "";
   let usage = null;
-  async function api(task, payload, signal){
+  const RETRY = ["upstream_error", "invalid_json", "busy", "timeout", "refused"];
+  async function api(task, payload, signal, tries = 2){
     if (!navigator.onLine) throw { code: "offline" };
     let r;
     try {
@@ -956,12 +967,24 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
         headers: { "content-type": "application/json", "x-device": deviceId },
         body: JSON.stringify({ task, me, level, ...payload })
       });
-    } catch (e){ throw { code: e?.name === "AbortError" ? "cancelled" : "offline" }; }
+    } catch (e){
+      if (e?.name === "AbortError") throw { code: "cancelled" };
+      if (tries > 1 && navigator.onLine){ await wait(1200, signal); return api(task, payload, signal, tries - 1); }
+      throw { code: "offline" };
+    }
     const j = await r.json().catch(() => ({}));
     if (j.usage) setUsage(j.usage);
-    if (!r.ok) throw { code: j.error || "upstream_error" };
+    if (!r.ok){
+      const code = j.error || (r.status === 504 ? "timeout" : "upstream_error");
+      if (tries > 1 && RETRY.includes(code)){ await wait(code === "busy" ? 2500 : 1000, signal); return api(task, payload, signal, tries - 1); }
+      throw { code };
+    }
     return j;
   }
+  const wait = (ms, signal) => new Promise((ok, ko) => {
+    const t = setTimeout(ok, ms);
+    signal?.addEventListener("abort", () => { clearTimeout(t); ko({ code: "cancelled" }); }, { once: true });
+  });
   const FICHA_READ = name => ({ kind: "ficha", name });
   const STORY_READ = name => ({ kind: "story", name });
   const CHAT_READ = name => ({ kind: "chat", name });
@@ -1012,11 +1035,18 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     return box;
   }
   // Llamada principal: devuelve {data}, {notConvo, motivo} o {blocked, motivo}
-  async function ask(c, mode, txt, imgs, signal, status){
+  const looksLikeChat = (txt, name) => {
+    const first = norm(String(name || "").replace(/^@/,"").split(/\s+/)[0]);
+    const lines = String(txt || "").split(/\n+/).filter(l => l.trim());
+    const tagged = lines.filter(l => { const k = norm(l.split(":")[0]).trim(); return l.includes(":") && (k === "yo" || k === "ella" || k === "el" || (first && k.startsWith(first))); });
+    return tagged.length >= 1 && tagged.length >= lines.length / 2;
+  };
+  async function ask(c, mode, txt, imgs, signal, status, force = false){
+    if (mode === "reply" && !force && looksLikeChat(txt, c.name)) force = true;
     const prep = await prepImages(imgs, mode === "open" ? STORY_READ(c.name) : CHAT_READ(c.name), signal, status);
     const { data } = await api(mode, {
       person: { name: c.name, sex: c.sex, likes: c.likes, ficha: c.ficha, transcript: c.transcript },
-      text: txt, images: prep.images, notes: prep.notes
+      text: txt, images: prep.images, notes: prep.notes, ...(force ? { force: true } : {})
     }, signal);
     if (!data || typeof data !== "object") throw { code: "invalid_json" };
     if (mode === "reply" && data.es_conversacion === false) return { notConvo: true, motivo: data.motivo };
@@ -1032,7 +1062,9 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
         const last = [...c.entries].reverse().find(e => e.k === "sent");
         if (last && last.sig && !last.replied){ last.replied = true; sendFeedback({ event: "replied", task: last.task, level: last.lvl, tipo: last.tipo, msg: last.msg, sig: last.sig, name: c.name }); }
       }
-      const lines = msgs.map(m => (norm(m.de) === "yo" ? "Yo: " : c.name + ": ") + String(m.texto || "")).filter(l => l.trim().length > 4);
+      const tail = new Set(String(c.transcript || "").split("\n").slice(-40).map(l => norm(l).replace(/\s+/g," ").trim()));
+      const lines = msgs.map(m => (norm(m.de) === "yo" ? "Yo: " : c.name + ": ") + String(m.texto || "").trim())
+        .filter(l => l.trim().length > 4 && !tail.has(norm(l).replace(/\s+/g," ").trim()));
       if (lines.length) c.transcript = (c.transcript ? c.transcript + "\n" : "") + lines.join("\n");
       if (data.quimica != null && !isNaN(Number(data.quimica))) c.quimica = Math.max(0, Math.min(100, Math.round(Number(data.quimica))));
     }
@@ -1179,6 +1211,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
   }, null);
 
   /* ================= Generar desde Abrir / Responder ================= */
+  const draft = {};
   async function resolvePerson(tab, status, signal){
     if (pick[tab] !== "new") return byId(pick[tab]);
     const name = $(`#${tab}-name`).value.trim();
@@ -1186,13 +1219,16 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     if (!name) throw { user: "Dime para quién es: su nombre o su @." };
     if (!sex) throw { user: "Dime si es chica o chico." };
     if (!$(`#${tab}-adult`).checked) throw { user: "Solo te ayudo con personas mayores de 18. Marca la casilla si lo es." };
-    const c = fix({ id: newId(), name, sex, likes: $(`#${tab}-likes`).value.trim(), ficha: "", transcript: "", quimica: null, pareja: null, entries: [], created: Date.now() });
-    const pf = files[tab + "-pf"];
+    const likes = $(`#${tab}-likes`).value.trim(), pf = files[tab + "-pf"];
+    const key = JSON.stringify([name, sex, likes, pf.length, pf.map(f => f.size)]);
+    if (draft[tab]?.key === key) return draft[tab].c;
+    const c = fix({ id: newId(), name, sex, likes, ficha: "", transcript: "", quimica: null, pareja: null, entries: [], created: Date.now() });
     if (pf.length) c.ficha = (await readBatches(pf, FICHA_READ(name), signal, status, "Leyendo su perfil")).slice(0, 6000);
+    draft[tab] = { key, c };
     return c;
   }
   const busy = {};
-  async function runPanel(tab){
+  async function runPanel(tab, force = false){
     const btn = $(`#${tab}Go`), out = $(`#${tab}Out`), input = $(`#${tab}In`);
     const label = tab === "open" ? "Generar abridores" : "Dime qué contestar";
     if (busy[tab]){ busy[tab].abort(); return; }
@@ -1206,10 +1242,12 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
       const c = await resolvePerson(tab, th.status, ac.signal);
       if (!c) throw { user: "No encuentro ese chat. Elige otra persona." };
       th.status.textContent = tab === "open" ? "Buscando el gancho…" : "Leyendo la conversa…";
-      const res = await ask(c, tab, txt, imgs, ac.signal, th.status);
+      const res = await ask(c, tab, txt, imgs, ac.signal, th.status, force);
       if (res.notConvo){
         const box = el("div","redirect");
-        box.append(el("p",null, `Esto no es una conversación${res.motivo ? ": " + String(res.motivo).replace(/\.$/,"") : ""}. Eso va en Abrir.`));
+        box.append(el("p",null, `Esto no parece una conversación${res.motivo ? ": " + String(res.motivo).replace(/\.$/,"").replace(/^./, ch => ch.toLowerCase()) : ""}. Si es una story o un perfil, eso va en Abrir.`));
+        const yes = el("button","btn small ghost","Sí es una conversación"); yes.type = "button";
+        yes.onclick = () => runPanel(tab, true);
         const go = el("button","btn small","Llevarlo a Abrir");
         go.onclick = () => {
           $("#openIn").value = txt; files.open = files.open.concat(imgs); drawers.open?.();
@@ -1218,11 +1256,12 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
           input.value = ""; files.reply = []; drawers.reply?.(); out.innerHTML = "";
           renderPickers(); goTab("#tab-open");
         };
-        box.append(go); out.replaceChildren(box);
+        const row = el("div","row-btns"); row.append(yes, go); box.append(row); out.replaceChildren(box);
         return;
       }
       if (res.blocked){ out.replaceChildren(blockedBox(res.motivo)); Sfx.bonk(); return; }
       const wasNew = pick[tab] === "new";
+      draft[tab] = null;
       const entry = await commit(c, tab, txt, imgs.length, res.data);
       panelResult(out, tab, res.data, c, entry);
       input.value = ""; files[tab] = []; drawers[tab]?.();
@@ -1231,7 +1270,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     } catch (e){
       if (e?.user){ out.replaceChildren(el("p","msg-err", e.user)); Sfx.bonk(); }
       else if (e?.code === "cancelled") out.replaceChildren(...prev);
-      else { out.replaceChildren(el("p","msg-err", errText(e))); Sfx.bonk(); }
+      else { out.replaceChildren(errBox(e, () => runPanel(tab, force))); Sfx.bonk(); }
     } finally { busy[tab] = null; btn.textContent = label; }
   }
   $("#openGo").onclick = () => runPanel("open");
@@ -1337,7 +1376,8 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
   $("#mOpen").onclick = () => setCMode("open");
   $("#mReply").onclick = () => setCMode("reply");
   let cBusy = null;
-  $("#cGo").onclick = async () => {
+  $("#cGo").onclick = () => runChat(false);
+  async function runChat(force){
     if (cBusy){ cBusy.abort(); return; }
     const c = byId(activeId); if (!c) return;
     const txt = $("#cIn").value.trim(), imgs = files.chat.slice(), out = $("#cOut");
@@ -1345,12 +1385,13 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     const mode = cMode; const ac = cBusy = new AbortController(); $("#cGo").textContent = "Parar";
     const th = thinking(mode === "open" ? "Buscando el gancho…" : "Leyendo la conversa…"); out.replaceChildren(th);
     try {
-      const res = await ask(c, mode, txt, imgs, ac.signal, th.status);
+      const res = await ask(c, mode, txt, imgs, ac.signal, th.status, force);
       if (res.notConvo){
         const box = el("div","redirect");
-        box.append(el("p",null, `Esto no es una conversación${res.motivo ? ": " + String(res.motivo).replace(/\.$/,"") : ""}. Eso va en Abrir.`));
+        box.append(el("p",null, `Esto no parece una conversación${res.motivo ? ": " + String(res.motivo).replace(/\.$/,"").replace(/^./, ch => ch.toLowerCase()) : ""}. Si es una story o un perfil, eso va en Abrir.`));
+        const yes = el("button","btn small ghost","Sí es una conversación"); yes.type = "button"; yes.onclick = () => runChat(true);
         const go = el("button","btn small","Pasarlo a Abrir"); go.onclick = () => { setCMode("open"); $("#cIn").value = txt; };
-        box.append(go); out.replaceChildren(box); return;
+        const row = el("div","row-btns"); row.append(yes, go); box.append(row); out.replaceChildren(box); return;
       }
       if (res.blocked){ out.replaceChildren(blockedBox(res.motivo)); Sfx.bonk(); return; }
       await commit(c, mode, txt, imgs.length, res.data);
@@ -1358,9 +1399,10 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
       renderThread(true); Sfx.ding();
       $("#thread").lastElementChild?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (e){
-      out.replaceChildren(e?.code === "cancelled" ? el("span") : el("p","msg-err", errText(e)));
+      if (e?.code === "cancelled") out.replaceChildren(el("span"));
+      else { out.replaceChildren(errBox(e, () => runChat(force))); Sfx.bonk(); }
     } finally { cBusy = null; $("#cGo").textContent = cMode === "open" ? "Dame abridores" : "Dime qué contestar"; }
-  };
+  }
 
   let fBusy = null, delDanger = false;
   $("#fSave").onclick = async () => {

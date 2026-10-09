@@ -26,6 +26,7 @@ export function cleanInput(body) {
       transcript: clip(p.transcript, 40000).slice(-6000),
     },
     text: clip(body?.text, 6000),
+    force: body?.force === true,
     notes: clip(body?.notes, 12000),
     bio: clip(body?.bio, 1500),
     feed: clip(body?.feed, 3000),
@@ -98,16 +99,24 @@ Responde SOLO con JSON:
 {${PAREJA_JSON},"lectura":"1 frase: qué detalle aprovechar y por qué",${OPTS_JSON}}` };
   }
   if (x.task === "reply") {
+    const n = c.name;
+    const check = x.force
+      ? `El usuario confirma que esto es una conversación con ${n}: trátalo como tal.`
+      : `Solo si lo nuevo es claramente otra cosa (la descripción de una story, de un perfil o de una foto, sin ningún mensaje de chat), pon "es_conversacion": false, explica en "motivo" qué es en 1 frase y deja "opciones" vacío. Ante la duda, es conversación.`;
     return { system: persona(x), json: true, prompt: `${personBlock(c)}
 
-NUEVO QUE PEGA EL USUARIO: ${newMaterial(x)}
+LO NUEVO QUE PEGA EL USUARIO: ${newMaterial(x)}
 Texto: """${x.text || "(solo capturas)"}"""
 
-PASO 1: decide si lo NUEVO es una conversación de chat entre el usuario y ${c.name} (mensajes que se han mandado, aunque sea uno solo de ${c.name}, o su respuesta a lo último guardado). Una descripción de una story, de un perfil o de una foto, o una idea de mensaje que aún no se ha enviado, NO es conversación.
-Si NO lo es, responde SOLO: {"es_conversacion":false,"motivo":"1 frase corta"}
-PASO 2, si lo es: transcribe solo los mensajes nuevos que no estén ya guardados y propón 3 continuaciones que suban la tensión, metan temas nuevos sin forzar y preparen pedir el WhatsApp o quedar si ya hay química.
-Responde SOLO con JSON:
-{"es_conversacion":true,"mensajes":[{"de":"yo|otra","texto":"..."}],"quimica":0-100,${PAREJA_JSON},"lectura":"1-2 frases: cómo va y qué dice entre líneas",${OPTS_JSON},"siguiente_paso":"1-2 frases: cuándo y cómo pedir el WhatsApp o quedar, o si conviene esperar o no insistir"}` };
+CÓMO LEERLO:
+- Texto sin indicar quién habla = lo que ${n} le acaba de contestar al usuario (aunque sea una sola palabra o un "jajaja").
+- Líneas con "Yo:" son del usuario; con "${n}:", "Ella:", "Él:" u otro nombre, de ${n}.
+- En capturas de chat, los mensajes del usuario van a la derecha (burbuja de color) y los de ${n} a la izquierda.
+${check}
+
+TAREA: en "mensajes" pon solo los mensajes nuevos que aún no estén en la conversación guardada (como mucho los 12 últimos, cortos). Propón 3 respuestas a lo último que ha dicho ${n}: que suban la tensión, metan temas nuevos sin forzar y preparen pedir el WhatsApp o quedar si ya hay química. Si lo último es del usuario y ${n} no ha contestado, propón cómo darle vidilla sin parecer pesado o recomienda esperar en "siguiente_paso".
+Responde SOLO con JSON con esta forma (los valores son de ejemplo, "de" es "yo" u "otra" y "quimica" un número de 0 a 100):
+{"es_conversacion":true,"motivo":"","mensajes":[{"de":"otra","texto":"jajaja y tú qué"}],"quimica":60,${PAREJA_JSON},"lectura":"1-2 frases: cómo va y qué dice entre líneas",${OPTS_JSON},"siguiente_paso":"1-2 frases: cuándo y cómo pedir el WhatsApp o quedar, o si conviene esperar o no insistir"}` };
   }
   // profile
   return { system: persona(x), json: true, prompt: `TAREA: analiza el perfil de Instagram DEL USUARIO para convertirlo en un imán. Evalúa: fotos del feed (calidad, vibra, variedad: estilo de vida, viajes, outfits, risa, misterio; qué sobra y qué falta), biografía (corta, intrigante o divertida, sin clichés ni emojis de más), destacadas (estructura que dé conversación rápida) y vibra general (confianza, desesperación, misterio, aburrimiento). Sé sincero y concreto, con cariño. No comentes el físico.
@@ -116,6 +125,6 @@ Bio: """${x.bio || "(no la ha puesto)"}"""
 Feed y destacadas: """${x.feed || "(no lo ha descrito)"}"""
 
 Responde SOLO con JSON:
-{"vibra":"2-4 palabras","resumen":"2 frases","notas":{"feed":0-10,"bio":0-10,"destacadas":0-10,"vibra":0-10},"consejos":[{"area":"Feed|Bio|Destacadas|Vibra","texto":"consejo accionable de 1-2 frases"}],"bios":["bio 1","bio 2","bio 3"]}
-Entre 3 y 6 consejos. Las bios: cortas, la primera pícara, la segunda divertida, la tercera natural.` };
+{"vibra":"2-4 palabras","resumen":"2 frases","notas":{"feed":6,"bio":4,"destacadas":7,"vibra":6},"consejos":[{"area":"Feed|Bio|Destacadas|Vibra","texto":"consejo accionable de 1-2 frases"}],"bios":["bio 1","bio 2","bio 3"]}
+Las notas son números de 0 a 10 (los de arriba son de ejemplo). Entre 3 y 6 consejos. Las bios: cortas, la primera pícara, la segunda divertida, la tercera natural.` };
 }

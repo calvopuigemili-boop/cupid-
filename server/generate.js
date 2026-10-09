@@ -46,20 +46,61 @@ export default async function handler(req, res) {
   ];
   const model = x.task === "read" ? CFG.modelRead : lic.premium ? CFG.modelPremium : CFG.modelFree;
 
+  const maxTokens = x.task === "read" ? 1200 : x.task === "reply" ? 3000 : 2200;
+  const once = async () => {
+    const text = await claude({ model, system, content, maxTokens });
+    return json ? tidy(x, parseJson(text)) : text;
+  };
   try {
-    const text = await claude({ model, system, content, maxTokens: x.task === "read" ? 1200 : 1600 });
-    if (!json) return send(res, 200, { text });
-    const data = parseJson(text);
+    if (!json) return send(res, 200, { text: await once() });
+    // Si la respuesta sale rota o sin mensajes, se repite una vez antes de molestar al usuario
+    let data;
+    try { data = await once(); }
+    catch (e) { if (!["invalid_json", "upstream_error", "refused"].includes(e.code)) throw e; data = await once(); }
+    if (needsRetry(x, data)) { try { const again = await once(); if (!needsRetry(x, again)) data = again; } catch {} }
     // Firma cada opción para poder aceptar luego votos solo sobre mensajes generados aquí
-    if (Array.isArray(data.opciones)) for (const o of data.opciones) { if (o && typeof o.mensaje === "string") o.sig = await sign(x.task, x.level, String(o.tipo || ""), o.mensaje).catch(() => undefined); }
+    if (Array.isArray(data.opciones)) for (const o of data.opciones) o.sig = await sign(x.task, x.level, String(o.tipo || ""), o.mensaje).catch(() => undefined);
     // Si lo pegado no era una conversación, no se gasta un mensaje
     const counts = !(x.task === "reply" && data.es_conversacion === false);
     const limit = lic.premium ? CFG.premiumDaily : CFG.freeDaily;
     const used = counts ? await bump(`g:${day}:${device}`).catch(() => null) : await peek(`g:${day}:${device}`).catch(() => null);
     return send(res, 200, { data, usage: { used, limit, premium: lic.premium } });
   } catch (e) {
+    console.error("generate", x.task, e.code || "", e.message);
     return send(res, e.status || 502, { error: e.code || "upstream_error" });
   }
+}
+
+// Deja la respuesta de la IA con una forma fija para que la app nunca se trabe con campos raros
+function tidy(x, d) {
+  if (!d || typeof d !== "object" || Array.isArray(d)) throw Object.assign(new Error("invalid_json"), { status: 502, code: "invalid_json" });
+  if (x.task !== "open" && x.task !== "reply") return d;
+  const txt = v => (typeof v === "string" ? v.trim() : "");
+  d.opciones = (Array.isArray(d.opciones) ? d.opciones : [])
+    .filter(o => o && txt(o.mensaje))
+    .slice(0, 3)
+    .map(o => ({ tipo: txt(o.tipo) || "natural", mensaje: txt(o.mensaje), porque: txt(o.porque) }));
+  d.lectura = txt(d.lectura);
+  if (d.pareja && typeof d.pareja === "object") d.pareja = { nivel: txt(d.pareja.nivel).toLowerCase() || "ninguna", pista: txt(d.pareja.pista) };
+  else delete d.pareja;
+  if (x.task === "reply") {
+    const no = d.es_conversacion === false || d.es_conversacion === "false";
+    d.es_conversacion = x.force || d.opciones.length > 0 || !no;
+    d.motivo = txt(d.motivo);
+    d.mensajes = (Array.isArray(d.mensajes) ? d.mensajes : [])
+      .filter(m => m && txt(m.texto))
+      .slice(-12)
+      .map(m => ({ de: /^(yo|usuario|user|me)$/i.test(txt(m.de)) ? "yo" : "otra", texto: txt(m.texto).slice(0, 600) }));
+    const q = d.quimica == null || d.quimica === "" ? NaN : Number(d.quimica);
+    if (Number.isFinite(q)) d.quimica = Math.max(0, Math.min(100, Math.round(q))); else delete d.quimica;
+    d.siguiente_paso = txt(d.siguiente_paso);
+  }
+  return d;
+}
+function needsRetry(x, d) {
+  if (x.task !== "open" && x.task !== "reply") return false;
+  if (x.task === "reply" && d.es_conversacion === false) return false;
+  return d.opciones.length === 0;
 }
 
 async function usage(req, res) {

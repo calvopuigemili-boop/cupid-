@@ -130,12 +130,36 @@ export async function claude({ model, system, content, maxTokens = 1500 }) {
   if (j.stop_reason === "refusal" || !text) throw Object.assign(new Error("refused"), { status: 422, code: "refused" });
   return text;
 }
-// Lee JSON con tolerancia: todo, un bloque ```json, o del primer { al último }.
+// Lee JSON con tolerancia: todo, un bloque ```json, del primer { al último }, o reparando una respuesta cortada.
 export function parseJson(text) {
+  // Arregla rangos copiados de la plantilla ("quimica":0-100)
+  text = String(text || "").replace(/("\s*:\s*)(\d+)\s*-\s*\d+(?=\s*[,}])/g, "$1null");
   try { return JSON.parse(text); } catch {}
   const fence = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) { try { return JSON.parse(fence[1]); } catch {} }
   const a = text.indexOf("{"), b = text.lastIndexOf("}");
   if (a >= 0 && b > a) { try { return JSON.parse(text.slice(a, b + 1)); } catch {} }
+  if (a >= 0) { const r = repairJson(text.slice(a).replace(/```\s*$/, "")); if (r) return r; }
   throw Object.assign(new Error("invalid_json"), { status: 502, code: "invalid_json" });
+}
+// Cierra un JSON que se ha quedado a medias: prueba a cortar en cada coma (desde el final) y cerrar lo abierto.
+function closers(s) {
+  const stack = []; let inStr = false, esc = false;
+  for (const ch of s) {
+    if (inStr) { if (esc) esc = false; else if (ch === "\\") esc = true; else if (ch === '"') inStr = false; continue; }
+    if (ch === '"') inStr = true;
+    else if (ch === "{" || ch === "[") stack.push(ch === "{" ? "}" : "]");
+    else if (ch === "}" || ch === "]") stack.pop();
+  }
+  return (inStr ? '"' : "") + stack.reverse().join("");
+}
+export function repairJson(s) {
+  const cuts = [];
+  for (let i = s.length - 1; i > 0 && cuts.length < 300; i--) if (s[i] === ",") cuts.push(i);
+  cuts.push(s.length);
+  for (const cut of cuts) {
+    const head = s.slice(0, cut).replace(/[\s:]+$/, "");
+    try { const v = JSON.parse(head + closers(head)); if (v && typeof v === "object") return v; } catch {}
+  }
+  return null;
 }
