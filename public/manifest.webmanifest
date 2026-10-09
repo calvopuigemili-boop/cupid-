@@ -1,0 +1,23 @@
+{
+  "name": "Cupid@ · Tu colega crack para ligar",
+  "short_name": "Cupid@",
+  "description": "Abridores con descaro, qué contestar cuando se enfría y un chat guardado por cada persona. Para mayores de 18.",
+  "lang": "es",
+  "id": "/",
+  "start_url": "/?source=app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF2F3",
+  "theme_color": "#C90449",
+  "categories": ["lifestyle", "social"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Responder", "url": "/?tab=reply", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Mis chats", "url": "/?tab=chats", "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
