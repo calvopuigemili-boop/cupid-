@@ -142,7 +142,8 @@ export async function claude({ model, system, content, maxTokens = 1500, oidc, j
     j = await ai.messages.create({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content }] });
   } catch (e) {
     const st = e?.status, msg = String(e?.message || "");
-    const code = /credit|payment|billing|insufficient|quota|card/i.test(msg) ? "ai_credits"
+    const code = /verification|credit card|card on file/i.test(msg) ? "ai_auth"
+      : /credit|payment|billing|insufficient|quota/i.test(msg) ? "ai_credits"
       : st === 401 || st === 403 ? "ai_auth"
       : st === 404 ? "ai_model"
       : st === 429 || st === 529 ? "busy"
@@ -183,7 +184,7 @@ async function mistral({ system, content, maxTokens, json }) {
   if (!r.ok) {
     msg = String(j?.message || j?.error?.message || j?.detail || r.statusText || "");
     const code = r.status === 401 || r.status === 403 ? "ai_auth" : r.status === 429 ? "busy"
-      : /credit|payment|billing|quota|limit/i.test(msg) ? "ai_credits"
+      : /credit|payment|billing|quota/i.test(msg) ? "ai_credits"
       : r.status === 400 && /image/i.test(msg) ? "image_rejected" : r.status === 404 ? "ai_model" : "upstream_error";
     console.error("mistral", r.status, code, msg.slice(0, 300));
     throw Object.assign(new Error(msg || "mistral_error"), { status: 502, code, upstreamStatus: r.status });
