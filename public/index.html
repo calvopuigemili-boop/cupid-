@@ -18,9 +18,8 @@
 <meta property="og:image" content="/icons/og.png">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap">
+<link rel="preload" href="/fonts/dm-sans-latin-opsz-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/fonts/fonts.css">
 <style>
 /* Layout: app móvil de una columna (máx 560px) con 4 pestañas; cada pestaña es una tarjeta blanca sobre fondo rubor; resultados como burbujas de DM.
    Paleta sacada del logo: carmesí #C90449, frambuesa #E40453, rosa neón #F01560, rubor #F4EBEA, vino #620326, oro del arco #F5CC70 */
@@ -270,6 +269,14 @@ h3{font-size:1.05rem;font-weight:800}
 .thread.still .entry, .thread.still .result > *{animation:none}
 .msg-err{animation:shake .35s ease}
 .err-box{display:grid;gap:10px;justify-items:start}
+.check a{color:var(--accent);font-weight:700}
+.infobasic{font-size:.85rem;color:var(--muted);border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:var(--surface)}
+.infobasic summary{cursor:pointer;font-weight:700}
+.infobasic dl{margin:8px 0 0;display:grid;gap:6px}
+.infobasic dt{font-weight:700;color:var(--ink)}
+.infobasic dd{margin:0}
+.infobasic a,.sheet .note a{color:var(--accent)}
+.ai-note{font-size:.8rem;color:var(--muted);margin:0;display:flex;gap:6px;align-items:center}
 .row-btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .thermo .pin{transition:left 1.1s cubic-bezier(.2,1.3,.4,1)}
 .tab{transition:background .2s,color .2s,transform .1s}
@@ -384,6 +391,26 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
       <input type="checkbox" id="adult">
       <span><strong>Tengo 18 años o más</strong><small>Cupid@ es una app para mayores de edad.</small></span>
     </label>
+    <label class="check" for="legalOk">
+      <input type="checkbox" id="legalOk">
+      <span><strong>Acepto los <a href="/terminos" target="_blank" rel="noopener">términos de uso</a></strong><small>y he leído la <a href="/privacidad" target="_blank" rel="noopener">política de privacidad</a>.</small></span>
+    </label>
+    <label class="check" for="sensOk">
+      <input type="checkbox" id="sensOk">
+      <span><strong>Doy mi consentimiento explícito</strong><small>para que Cupid@ use a quién busco y lo que cuente de las personas con las que hablo (puede revelar mi orientación sexual) solo para crear mis mensajes. Puedo retirarlo cuando quiera en "Tus datos".</small></span>
+    </label>
+    <details class="infobasic">
+      <summary>Información básica sobre protección de datos</summary>
+      <dl>
+        <dt>Responsable</dt><dd>El titular de Cupid@ (datos en el <a href="/aviso-legal" target="_blank" rel="noopener">aviso legal</a>).</dd>
+        <dt>Finalidad</dt><dd>Crear sugerencias de mensajes con inteligencia artificial y, si creas cuenta, guardar tus chats.</dd>
+        <dt>Legitimación</dt><dd>Tu consentimiento explícito y la prestación del servicio que pides. Mejora anónima de la IA: interés legítimo, con opción de desactivarla.</dd>
+        <dt>Destinatarios</dt><dd>Netlify (alojamiento) y Anthropic (la IA Claude), en EE. UU. con garantías de la UE. No vendemos datos ni hay publicidad.</dd>
+        <dt>Derechos</dt><dd>Acceso, rectificación, supresión, portabilidad, oposición y limitación; puedes descargar o borrar tus datos en "Tus datos".</dd>
+        <dt>Más información</dt><dd><a href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>.</dd>
+      </dl>
+    </details>
+    <p class="note" id="onbUpdate" hidden>Hemos actualizado los términos y la privacidad. Revísalos y acepta para seguir.</p>
     <p class="msg-err" id="onbErr" hidden></p>
     <button class="btn block" type="submit">Empezar</button>
   </form>
@@ -392,6 +419,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     <div class="row"><i>2</i><div><strong>Responder</strong><span>Pegas la conversa y te digo cómo va la química y qué contestar.</span></div></div>
     <div class="row"><i>3</i><div><strong>Chats</strong><span>Cada persona queda guardada con su ficha y vuestra conversación.</span></div></div>
   </div>
+  <p class="foot">Cupid@ funciona con inteligencia artificial (Claude, de Anthropic).<br><a href="/privacidad">Privacidad</a> · <a href="/terminos">Términos</a> · <a href="/aviso-legal">Aviso legal</a> · <a href="/cookies">Cookies</a> · Solo mayores de 18 · Cupid@ no tiene relación con Instagram ni Meta.</p>
 </section>
 
 <!-- APP -->
@@ -492,7 +520,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     <div class="result" id="profOut"></div>
   </section>
 
-  <p class="foot">Descaro sí, pesadez no: si alguien no responde, te corta o tiene pareja, se respeta y a otra cosa.<br><button class="linkbtn" id="suggBtn" type="button">Dinos qué mejorar</button> · <a href="/privacidad">Privacidad</a> · <a href="/terminos">Términos</a> · Solo mayores de 18 · Cupid@ no tiene relación con Instagram ni Meta.</p>
+  <p class="foot">Descaro sí, pesadez no: si alguien no responde, te corta o tiene pareja, se respeta y a otra cosa.<br><button class="linkbtn" id="suggBtn" type="button">Dinos qué mejorar</button> · <button class="linkbtn" id="dataBtn" type="button">Tus datos</button> · <a href="/privacidad">Privacidad</a> · <a href="/terminos">Términos</a> · <a href="/aviso-legal">Aviso legal</a> · <a href="/cookies">Cookies</a><br>Los mensajes los genera una IA (Claude, de Anthropic): revísalos antes de enviarlos. Solo mayores de 18 · Cupid@ no tiene relación con Instagram ni Meta.</p>
 </main>
 </div>
 
@@ -522,6 +550,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
       <form id="acctForm" class="stack" novalidate>
         <div class="field"><label class="label" for="acctMailIn">Email</label><input type="text" id="acctMailIn" inputmode="email" autocomplete="email" placeholder="tu@email.com"></div>
         <div class="field"><label class="label" for="acctPass">Contraseña</label><input type="password" id="acctPass" autocomplete="new-password" placeholder="Mínimo 8 caracteres"></div>
+        <p class="note" id="acctInfo">Al crear la cuenta guardamos tu email, tu perfil y tus chats para que los tengas en cualquier móvil. Puedes descargarlos o borrarlos cuando quieras. <a href="/privacidad" target="_blank" rel="noopener">Privacidad</a></p>
         <button class="btn block" id="acctGo" type="submit">Crear cuenta</button>
       </form>
       <div class="row2" style="justify-content:space-between;flex-wrap:wrap">
@@ -533,6 +562,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     <div id="acctIn" class="stack" hidden>
       <h2>Tu cuenta</h2>
       <p class="note" style="text-align:center"><strong id="acctEmail"></strong><br>Tus chats y tu perfil se guardan en tu cuenta.</p>
+      <button class="btn ghost block" id="acctData" type="button">Tus datos: descargar o borrar</button>
       <button class="btn ghost block" id="acctOutBtn" type="button">Cerrar sesión</button>
       <button class="danger" id="acctDel" type="button" style="justify-self:center">Borrar mi cuenta y mis datos</button>
     </div>
@@ -542,6 +572,24 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
       <button class="btn block" id="acctNewPassGo" type="button">Guardar contraseña</button>
     </div>
     <p class="note" id="acctMsg" role="status"></p>
+  </div>
+</div>
+
+<!-- Tus datos (RGPD) -->
+<div class="sheet" id="dataSheet" hidden role="dialog" aria-modal="true" aria-labelledby="dataTitle">
+  <div class="card">
+    <button class="x" id="dataClose" type="button" aria-label="Cerrar">✕</button>
+    <div class="stack">
+      <h2 id="dataTitle">Tus datos</h2>
+      <p class="note" id="dataWhere"></p>
+      <label class="check" for="learnOk">
+        <input type="checkbox" id="learnOk">
+        <span><strong>Ayudar a mejorar Cupid@</strong><small>Cuando votas un mensaje, lo marcas como enviado o te contestan, se guarda ese mensaje sin nombres ni datos tuyos para enseñar a la IA qué funciona. Si lo desmarcas, no se envía nada.</small></span>
+      </label>
+      <button class="btn ghost block" id="dataExport" type="button">Descargar mis datos</button>
+      <button class="danger" id="dataWipe" type="button" style="justify-self:center">Retirar mi consentimiento y borrar mis datos</button>
+      <p class="note">Para cualquier otra petición (acceso, rectificación, oposición…) escribe al email del <a href="/aviso-legal">aviso legal</a>. Si no te atendemos bien, puedes reclamar ante la <a href="https://www.aepd.es" target="_blank" rel="noopener">AEPD</a>.</p>
+    </div>
   </div>
 </div>
 
@@ -737,6 +785,10 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     }
   })();
   let me = ls.get("cupid_me");
+  // Consentimiento (RGPD art. 7 y 9): versión de los textos legales que la persona aceptó
+  const POLICY_V = "2026-10-10";
+  const consentOk = () => { const k = ls.get("cupid_consent"); return !!(k && k.v === POLICY_V && k.legal && k.sens); };
+  const learnOn = () => ls.get("cupid_learn") !== false;
   let level = ls.get("cupid_level") || "picante";
   const imgLimits = { maxCount: 4, mediaTypes: ["image/jpeg","image/png","image/webp","image/gif"] };
   let chats = [], activeId = null, cMode = "reply";
@@ -812,12 +864,15 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     const err = $("#onbErr");
     if (!g || !t){ err.textContent = "Elige qué eres y a quién buscas para afinar los mensajes."; err.hidden = false; return; }
     if (!$("#adult").checked){ err.textContent = "Cupid@ es solo para mayores de 18. Si aún no los tienes, esta app no es para ti."; err.hidden = false; return; }
-    err.hidden = true; me = { g, t }; Store.saveMe(me); show("home"); renderPickers(); Sfx.chime();
+    if (!$("#legalOk").checked){ err.textContent = "Para usar Cupid@ tienes que aceptar los términos de uso."; err.hidden = false; return; }
+    if (!$("#sensOk").checked){ err.textContent = "Sin tu consentimiento no puedo usar a quién buscas ni lo que me cuentes de tus ligues, y sin eso Cupid@ no funciona."; err.hidden = false; return; }
+    ls.set("cupid_consent", { v: POLICY_V, at: new Date().toISOString(), legal: true, sens: true });
+    err.hidden = true; $("#onbUpdate").hidden = true; me = { g, t }; Store.saveMe(me); show("home"); renderPickers(); Sfx.chime();
     if (Auth && !Sync.user) setTimeout(() => openAccount("signup", true), 500);
     const p = $("#p-open"); p.classList.remove("enter"); void p.offsetWidth; p.classList.add("enter");
   });
   $("#whoBtn").addEventListener("click", () => {
-    if (me){ document.querySelectorAll('input[name="g"]').forEach(i => i.checked = i.value === me.g); document.querySelectorAll('input[name="t"]').forEach(i => i.checked = i.value === me.t); $("#adult").checked = true; }
+    if (me){ document.querySelectorAll('input[name="g"]').forEach(i => i.checked = i.value === me.g); document.querySelectorAll('input[name="t"]').forEach(i => i.checked = i.value === me.t); $("#adult").checked = true; $("#legalOk").checked = $("#sensOk").checked = consentOk(); }
     show("welcome");
   });
 
@@ -955,7 +1010,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     if (!d || String(d).length < 16){ d = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)); ls.set("cupid_device", d); }
     return d;
   })();
-  let license = ls.get("cupid_license") || "";
+  try { localStorage.removeItem("cupid_license"); } catch {}   // resto de la antigua versión Premium
   let usage = null;
   const RETRY = ["upstream_error", "invalid_json", "busy", "timeout", "refused"];
   async function api(task, payload, signal, tries = 2){
@@ -1074,6 +1129,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     return Store.save(c).then(() => entry);
   }
   function sendFeedback(body){
+    if (!learnOn()) return;
     try { fetch("/api/feedback", { method: "POST", keepalive: true, headers: { "content-type": "application/json", "x-device": deviceId }, body: JSON.stringify(body) }).catch(() => {}); } catch {}
   }
   function markSent(id, msg, meta = {}){
@@ -1111,7 +1167,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     const vote = (b, ev) => {
       if (w.dataset.done) return; w.dataset.done = "1"; b.classList.add("on"); up.disabled = down.disabled = true;
       sendFeedback({ event: ev, task: meta.task, level: meta.level, tipo: String(o.tipo || ""), msg: String(o.mensaje || ""), sig: o.sig, name });
-      toast(ev === "like" ? "Apuntado: Cupid@ aprende de lo que te gusta" : "Apuntado: Cupid@ evitará ese estilo");
+      toast(!learnOn() ? "Apuntado (no se envía: tienes desactivado ayudar a mejorar)" : ev === "like" ? "Apuntado: Cupid@ aprende de lo que te gusta" : "Apuntado: Cupid@ evitará ese estilo");
     };
     up.onclick = () => vote(up, "like"); down.onclick = () => vote(down, "dislike");
     w.append(up, down); return w;
@@ -1121,7 +1177,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     (list || []).forEach(o => {
       const k = KIND[norm(o.tipo)] || [o.tipo || "Opción","var(--muted)"];
       const msg = String(o.mensaje || "");
-      const box = el("div","opt");
+      const box = el("div","opt"); box.dataset.aiGenerated = "true";
       const lab = el("div","kind"); const dot = el("i"); dot.style.background = k[1]; lab.append(dot, k[0]);
       const bub = el("div","bubble", msg);
       box.append(lab, bub);
@@ -1170,6 +1226,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     if (mode === "reply" && r.quimica != null) frag.append(thermo(r.quimica));
     const f = flag(r.pareja); if (f) frag.append(f);
     if (r.lectura) frag.append(el("p","reading", r.lectura));
+    if (r.opciones?.length) frag.append(el("p","ai-note","✦ Generado con IA. Revísalo antes de enviarlo."));
     frag.append(options(r.opciones, chatId, { task: mode, level: lvl || level }));
     if (r.siguiente_paso){ const n = el("p","next"); n.append(el("b",null,"Siguiente movimiento"), document.createTextNode(r.siguiente_paso)); frag.append(n); }
     return frag;
@@ -1516,7 +1573,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     pushMe(){
       if (!this.user || !this.ready || !me) return;
       clearTimeout(this.timers.__me);
-      this.timers.__me = setTimeout(() => this.api({ op: "me", me: { g: me.g, t: me.t, level, license } }).catch(() => {}), 500);
+      this.timers.__me = setTimeout(() => this.api({ op: "me", me: { g: me.g, t: me.t, level, consent: ls.get("cupid_consent"), learn: learnOn() } }).catch(() => {}), 500);
     },
     // Al entrar: mezcla lo que hay en el móvil con lo de la cuenta (gana lo más reciente)
     async pull(){
@@ -1531,12 +1588,14 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
       for (const l of local.values()) if (!server.has(l.id)) toPush.push(l);
       chats = [...local.values()].sort((a,b) => b.updated - a.updated);
       Store.write();
-      if (j.me?.license && !license){ license = j.me.license; ls.set("cupid_license", license); refreshUsage(); }
       if (j.me?.level){ level = j.me.level; ls.set("cupid_level", level); renderSpice(); }
-      if (j.me?.g && !me){ me = { g: j.me.g, t: j.me.t }; ls.set("cupid_me", me); show("home"); }
+      if (j.me?.learn === false) ls.set("cupid_learn", false);
+      if (j.me?.consent?.v === POLICY_V && j.me.consent.sens && !consentOk()) ls.set("cupid_consent", j.me.consent);
+      if (j.me?.g && !me){ me = { g: j.me.g, t: j.me.t }; ls.set("cupid_me", me); }
+      if (me && consentOk() && !$("#welcome").hidden) show("home");
       this.ready = true;
       toPush.forEach(c => this.api({ op: "put", chat: c }).catch(() => {}));
-      if (!j.me || !j.me.g || (license && j.me.license !== license)) this.pushMe();
+      if (!j.me || !j.me.g || j.me.consent?.v !== POLICY_V) this.pushMe();
       Store.emit(); restoreLast();
     }
   };
@@ -1623,8 +1682,8 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     try { await Auth.logout(); } catch {}
     // En un móvil compartido no se quedan los chats: siguen en la cuenta
     chats = []; Store.write(); Sync.user = null; Sync.ready = false;
-    ls.set("cupid_last", {}); license = ""; ls.set("cupid_license", "");
-    drawAccount(); closeAccount(); Store.emit(); refreshUsage(); toast("Sesión cerrada. Tus chats siguen guardados en tu cuenta.");
+    ls.set("cupid_last", {});
+    drawAccount(); closeAccount(); Store.emit(); toast("Sesión cerrada. Tus chats siguen guardados en tu cuenta.");
   };
   let delAcct = false;
   $("#acctDel").onclick = async () => {
@@ -1651,6 +1710,40 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     let u = null; try { u = await Auth.getUser(); } catch {}
     if (u && Sync.user?.id !== u.id) await onLogin(u); else drawAccount();
   }
+
+  /* ================= Tus datos (RGPD) ================= */
+  let wipeArmed = false;
+  function openData(){
+    $("#dataSheet").hidden = false; wipeArmed = false;
+    $("#dataWipe").textContent = "Retirar mi consentimiento y borrar mis datos";
+    $("#learnOk").checked = learnOn();
+    $("#dataWhere").textContent = Sync.user
+      ? `Tus chats y tu perfil se guardan en este móvil y en tu cuenta (${Sync.user.email}).`
+      : "Tus chats y tu perfil se guardan solo en este móvil. Lo que mandas para generar mensajes no se guarda en el servidor.";
+  }
+  $("#dataBtn").onclick = openData;
+  $("#acctData").onclick = () => { closeAccount(); openData(); };
+  $("#dataClose").onclick = () => $("#dataSheet").hidden = true;
+  $("#dataSheet").addEventListener("click", e => { if (e.target.id === "dataSheet") $("#dataSheet").hidden = true; });
+  $("#learnOk").onchange = () => { ls.set("cupid_learn", $("#learnOk").checked); Sync.pushMe(); toast($("#learnOk").checked ? "Gracias: tus votos ayudan a mejorar Cupid@." : "Hecho: no se enviará nada para aprender."); };
+  $("#dataExport").onclick = () => {
+    const data = {
+      app: "Cupid@", exportado: new Date().toISOString(),
+      cuenta: Sync.user ? { email: Sync.user.email } : null,
+      perfil: me, nivel_picante: level, consentimiento: ls.get("cupid_consent"), ayudar_a_mejorar: learnOn(),
+      chats
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+    const a = el("a"); a.href = url; a.download = `cupid-mis-datos-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+  };
+  $("#dataWipe").onclick = async () => {
+    if (!wipeArmed){ wipeArmed = true; $("#dataWipe").textContent = Sync.user ? "¿Seguro? Se borran tu cuenta, tus chats y todo lo de este móvil. Pulsa otra vez" : "¿Seguro? Se borra todo lo de este móvil. Pulsa otra vez"; return; }
+    if (Sync.user){ try { await Sync.api({ op: "wipe" }); } catch {} try { await Auth.logout(); } catch {} }
+    try { Object.keys(localStorage).filter(k => k.startsWith("cupid_")).forEach(k => localStorage.removeItem(k)); } catch {}
+    try { sessionStorage.clear(); } catch {}
+    location.replace("/");
+  };
 
   /* ================= Sugerencias ================= */
   $("#suggBtn").onclick = () => { $("#sugg").hidden = false; $("#suggIn").focus(); };
@@ -1697,13 +1790,17 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
   renderSpice();
   renderPickers();
   buildUploads();
-  show(me ? "home" : "welcome");
+  if (me && !consentOk()){
+    document.querySelectorAll('input[name="g"]').forEach(i => i.checked = i.value === me.g); document.querySelectorAll('input[name="t"]').forEach(i => i.checked = i.value === me.t);
+    $("#onbUpdate").hidden = false;
+  }
+  show(me && consentOk() ? "home" : "welcome");
   Store.init().then(() => {
     drawAccount(); renderPickers(); renderList(); restoreLast();
     initAuth();
   });
   const startTab = new URLSearchParams(location.search).get("tab");
-  if (me && ["open","reply","chats","prof"].includes(startTab)){ goTab("#tab-" + startTab); if (startTab === "chats") Store.init().then(showList); }
+  if (me && consentOk() && ["open","reply","chats","prof"].includes(startTab)){ goTab("#tab-" + startTab); if (startTab === "chats") Store.init().then(showList); }
 
 })();
 </script>

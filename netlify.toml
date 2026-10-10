@@ -21,6 +21,16 @@
   to = "/terminos.html"
   status = 200
 
+[[redirects]]
+  from = "/aviso-legal"
+  to = "/aviso-legal.html"
+  status = 200
+
+[[redirects]]
+  from = "/cookies"
+  to = "/cookies.html"
+  status = 200
+
 [[headers]]
   for = "/sw.js"
   [headers.values]
@@ -32,4 +42,5 @@
   [headers.values]
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()"
+# La CSP, HSTS y el resto de cabeceras de seguridad se generan en cada build en public/_headers (scripts/headers.mjs)

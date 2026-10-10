@@ -8,9 +8,10 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "esbuild client/auth.js --bundle --format=esm --minify --target=es2020 --outfile=public/auth.js",
+    "build": "esbuild client/auth.js --bundle --format=esm --minify --target=es2020 --outfile=public/auth.js && node scripts/headers.mjs",
     "dev": "netlify dev",
-    "deploy": "netlify deploy --prod"
+    "deploy": "netlify deploy --prod",
+    "headers": "node scripts/headers.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.127.0",

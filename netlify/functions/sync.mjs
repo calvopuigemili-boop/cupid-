@@ -1,8 +1,8 @@
-// /api/sync — chats, perfil y Premium de cada cuenta (Netlify Identity + Netlify Blobs).
+// /api/sync — chats y perfil de cada cuenta (Netlify Identity + Netlify Blobs).
 //   GET                         → {me, chats}
 //   POST {op:"put", chat}       → guarda un chat
 //   POST {op:"del", id}         → borra un chat
-//   POST {op:"me", me}          → guarda perfil (g, t, level, license)
+//   POST {op:"me", me}          → guarda perfil (g, t, level), el consentimiento y si quiere ayudar a mejorar
 //   POST {op:"wipe"}            → borra todos los datos y la cuenta
 import { getUser, admin, verifyRequestOrigin } from "@netlify/identity";
 import { getStore } from "@netlify/blobs";
@@ -53,7 +53,12 @@ export default async (req) => {
       g: ["Hombre", "Mujer"].includes(m.g) ? m.g : null,
       t: ["Mujeres", "Hombres", "Ambos"].includes(m.t) ? m.t : null,
       level: ["suave", "picante", "sinfiltro"].includes(m.level) ? m.level : "picante",
-      license: /^CUP-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(m.license || "") ? m.license : null,
+      // Prueba del consentimiento (RGPD art. 7.1): versión de los textos aceptados y fecha
+      consent: m.consent && typeof m.consent === "object" ? {
+        v: String(m.consent.v || "").slice(0, 20), at: String(m.consent.at || "").slice(0, 40),
+        legal: m.consent.legal === true, sens: m.consent.sens === true, saved: new Date().toISOString(),
+      } : null,
+      learn: m.learn !== false,
       updated: Date.now(),
     };
     await st.setJSON(base + "me", me);

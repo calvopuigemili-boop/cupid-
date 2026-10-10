@@ -3,7 +3,7 @@
 ## 1. Antes de abrirla al público
 
 **Imprescindible**
-- [ ] Rellenar todo lo marcado en amarillo en `privacidad.html` y `terminos.html` (nombre, NIF, dirección, email, fecha, precio).
+- [ ] Rellenar todo lo marcado en amarillo en `privacidad.html`, `terminos.html` y `aviso-legal.html` (nombre, NIF, dirección, email) y repasar la lista de `CUMPLIMIENTO-UE.md`.
 - [ ] Revisar en Netlify (Usage) cuántos créditos gasta la app tras la primera semana.
 - [ ] Probar el flujo completo en el móvil: bienvenida → Abrir con capturas → "Lo he enviado" (animación) → Responder → Chats → Perfil.
 - [ ] Instalarla en un Android y en un iPhone y comprobar icono, pantalla completa y sonidos.

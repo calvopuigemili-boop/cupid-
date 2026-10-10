@@ -1,5 +1,6 @@
 // POST /api/generate — genera abridores, respuestas, análisis de perfil o lee capturas.
 // Cabeceras: x-device (id aleatorio del móvil), x-license (código Premium, opcional).
+import crypto from "node:crypto";
 import { CFG, send, readJson, clientIp, today, bump, peek, claude, parseJson } from "./_lib.js";
 import { cleanInput, buildTask } from "./_prompts.js";
 import { examples, examplesBlock, sign } from "./_learn.js";
@@ -16,7 +17,8 @@ export default async function handler(req, res) {
 
   const device = String(req.headers["x-device"] || "").replace(/[^a-zA-Z0-9-]/g, "").slice(0, 64);
   if (device.length < 16) return send(res, 400, { error: "bad_request" });
-  const ip = clientIp(req);
+  // La IP nunca se guarda en claro: solo una huella que cambia cada día y se borra a las 48 h
+  const ip = crypto.createHash("sha256").update(`${today()}|${clientIp(req)}|cupida`).digest("base64url").slice(0, 22);
   const day = today();
   const lic = { premium: false };   // Cupid@ es gratis: un solo nivel para todos
 
@@ -52,7 +54,7 @@ export default async function handler(req, res) {
     return json ? tidy(x, parseJson(text)) : text;
   };
   try {
-    if (!json) return send(res, 200, { text: await once() });
+    if (!json) return send(res, 200, { text: await once() });   // lectura de capturas: texto de apoyo, no se muestra como mensaje
     // Si la respuesta sale rota o sin mensajes, se repite una vez antes de molestar al usuario
     let data;
     try { data = await once(); }
@@ -64,7 +66,9 @@ export default async function handler(req, res) {
     const counts = !(x.task === "reply" && data.es_conversacion === false);
     const limit = lic.premium ? CFG.premiumDaily : CFG.freeDaily;
     const used = counts ? await bump(`g:${day}:${device}`).catch(() => null) : await peek(`g:${day}:${device}`).catch(() => null);
-    return send(res, 200, { data, usage: { used, limit, premium: lic.premium } });
+    // Marca legible por máquina de que el contenido lo ha generado una IA (Reglamento de IA, art. 50)
+    res.setHeader("x-ai-generated", "true");
+    return send(res, 200, { data, ai_generated: true, generator: "Cupid@ con Claude (Anthropic)", usage: { used, limit, premium: lic.premium } });
   } catch (e) {
     console.error("generate", x.task, e.code || "", e.message);
     return send(res, e.status || 502, { error: e.code || "upstream_error" });

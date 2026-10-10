@@ -13,6 +13,9 @@ Proyecto en Netlify: **cupida-app** → https://cupida-app.netlify.app
 | `public/admin.html` | Tu panel: sugerencias y mensajes que más funcionan. Entra en `/admin` con tu cuenta de dueño iniciada en Cupid@. |
 | `netlify.toml` | Configuración de Netlify. |
 | `LANZAMIENTO.md` | Checklist, costes y plan de lanzamiento. |
+| `CUMPLIMIENTO-UE.md` | Normativa europea: qué está hecho, qué te toca, registro de tratamientos y evaluación de impacto. |
+| `scripts/headers.mjs` | Genera en cada build las cabeceras de seguridad (CSP) en `public/_headers`. |
+| `netlify/functions/cleanup.mjs` | Limpieza diaria automática de datos caducados. |
 
 Los contadores anti-abuso, los chats de las cuentas y lo aprendido se guardan en **Netlify Blobs**, que viene incluido: no hace falta ninguna base de datos aparte.
 

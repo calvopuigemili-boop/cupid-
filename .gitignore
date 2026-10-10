@@ -4,3 +4,4 @@ node_modules/
 !.env.example
 .netlify/
 public/auth.js
+public/_headers

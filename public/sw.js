@@ -1,6 +1,6 @@
 // Service worker de Cupid@: la app abre al instante y sin conexión (la IA sí necesita internet).
-const VERSION = "cupida-v6";
-const SHELL = ["/", "/manifest.webmanifest", "/icons/logo.webp", "/icons/cupid.webp", "/icons/icon-192.png", "/icons/icon-512.png", "/auth.js", "/privacidad", "/terminos"];
+const VERSION = "cupida-v7";
+const SHELL = ["/", "/manifest.webmanifest", "/icons/logo.webp", "/icons/cupid.webp", "/icons/icon-192.png", "/icons/icon-512.png", "/auth.js", "/fonts/fonts.css", "/fonts/dm-sans-latin-opsz-normal.woff2", "/fonts/plus-jakarta-sans-latin-wght-normal.woff2", "/privacidad", "/terminos", "/aviso-legal", "/cookies"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

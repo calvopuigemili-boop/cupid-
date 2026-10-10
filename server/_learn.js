@@ -50,6 +50,9 @@ export async function record({ task, level, tipo, msg, event }) {
   e[FIELD[event]] = (e[FIELD[event]] || 0) + 1;
   e.updated = Date.now();
   pool[h] = e;
+  // Conservación limitada: fuera lo que lleva más de 12 meses sin actividad
+  const yearAgo = Date.now() - 365 * 864e5;
+  for (const k of Object.keys(pool)) if ((pool[k].updated || pool[k].first || 0) < yearAgo) delete pool[k];
   // Máximo 300 por grupo: fuera los que menos señal tienen y más viejos
   const keys = Object.keys(pool);
   if (keys.length > 300) {
@@ -79,7 +82,8 @@ export function examplesBlock({ good, bad }) {
 
 export async function suggestion(text, device) {
   const id = `${Date.now()}-${crypto.randomBytes(3).toString("hex")}`;
-  await store().setJSON(`sugg/${id}`, { text, device: String(device).slice(0, 8), at: new Date().toISOString() });
+  const dev = crypto.createHash("sha256").update(String(device)).digest("hex").slice(0, 8);   // huella corta, no el id
+  await store().setJSON(`sugg/${id}`, { text, device: dev, at: new Date().toISOString() });
 }
 
 export async function bumpLimit(device, max = 80) {
