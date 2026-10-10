@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-6exnNCUd1LpInKyn+rm/68701k0ns1OyO+gcJW1CQyU=' 'sha256-cafsfAeoXeB6YQaZcUQv3GvCQmuU4EM2Vmvj43+X0Qk='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self' data: blob:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-/JHgW7FnlCLM1DgdnQBMEmZkk9d/6R7tD8nK8y11c8o=' 'sha256-cafsfAeoXeB6YQaZcUQv3GvCQmuU4EM2Vmvj43+X0Qk='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self' data: blob:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cupid@ · Tu colega crack para ligar en Instagram</title>
 <meta name="description" content="Abridores con descaro, qué contestar cuando la conversación se enfría y un chat guardado para cada persona. Para mayores de 18.">
@@ -998,13 +998,16 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     refused:"Eso se ha pasado de rosca y no lo puedo generar. Cambia el enfoque o baja un nivel el picante.",
     invalid_json:"La IA se ha liado con la respuesta. Dale a Reintentar.",
     timeout:"La IA ha tardado demasiado. Dale a Reintentar (si subiste muchas capturas, prueba con menos).",
-    upstream_error:"La IA no ha respondido bien esta vez. Dale a Reintentar."
+    upstream_error:"La IA no ha respondido bien esta vez. Dale a Reintentar.",
+    ai_auth:"La IA no está conectada todavía (falta permiso o clave). Avisa al dueño de Cupid@.",
+    ai_credits:"Se ha acabado la IA gratis de este mes. Vuelve más adelante.",
+    ai_model:"La IA no está disponible ahora mismo. Avisa al dueño de Cupid@."
   };
   const errText = e => ERR[e?.code] || "Algo ha fallado por el camino. Dale a Reintentar.";
   // Error con botón de reintentar (lo escrito y las capturas se quedan donde estaban)
   function errBox(e, retry){
     const box = el("div","err-box"); box.append(el("p","msg-err", errText(e)));
-    if (retry && !["free_limit","reads_limit","not_configured"].includes(e?.code)){ const b = el("button","btn small ghost","Reintentar"); b.type = "button"; b.onclick = retry; box.append(b); }
+    if (retry && !["free_limit","reads_limit","not_configured","ai_auth","ai_credits","ai_model"].includes(e?.code)){ const b = el("button","btn small ghost","Reintentar"); b.type = "button"; b.onclick = retry; box.append(b); }
     return box;
   }
   const deviceId = (() => {
@@ -1014,7 +1017,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
   })();
   try { localStorage.removeItem("cupid_license"); } catch {}   // resto de la antigua versión Premium
   let usage = null;
-  const RETRY = ["upstream_error", "invalid_json", "busy", "timeout", "refused"];
+  const RETRY = ["upstream_error", "invalid_json", "busy", "timeout", "refused"];   // ai_auth, ai_credits y ai_model no se reintentan
   async function api(task, payload, signal, tries = 2){
     if (!navigator.onLine) throw { code: "offline" };
     let r;

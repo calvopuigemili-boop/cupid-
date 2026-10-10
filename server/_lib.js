@@ -136,9 +136,14 @@ export async function claude({ model, system, content, maxTokens = 1500, oidc })
   try {
     j = await ai.messages.create({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content }] });
   } catch (e) {
-    const st = e?.status;
-    const code = st === 429 || st === 529 ? "busy" : st === 400 && /image/i.test(e?.message || "") ? "image_rejected" : "upstream_error";
-    throw Object.assign(new Error(e?.message || "claude_error"), { status: 502, code });
+    const st = e?.status, msg = String(e?.message || "");
+    const code = /credit|payment|billing|insufficient|quota|card/i.test(msg) ? "ai_credits"
+      : st === 401 || st === 403 ? "ai_auth"
+      : st === 404 ? "ai_model"
+      : st === 429 || st === 529 ? "busy"
+      : st === 400 && /image/i.test(msg) ? "image_rejected" : "upstream_error";
+    console.error("claude", st, code, msg.slice(0, 300));
+    throw Object.assign(new Error(msg || "claude_error"), { status: 502, code, upstreamStatus: st });
   }
   const text = (j.content || []).filter(b => b.type === "text").map(b => b.text).join("").trim();
   if (j.stop_reason === "refusal" || !text) throw Object.assign(new Error("refused"), { status: 422, code: "refused" });

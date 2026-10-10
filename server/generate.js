@@ -109,5 +109,19 @@ function needsRetry(x, d) {
 }
 
 async function usage(req, res) {
-  send(res, 200, { free: true });
+  // /api/generate?diag=1 → comprueba la conexión con la IA (sin datos de nadie ni claves)
+  if (!/[?&]diag=1/.test(req.url || "")) return send(res, 200, { free: true });
+  const oidc = String(req.headers["x-vercel-oidc-token"] || "") || undefined;
+  const info = {
+    host: CFG.onVercel ? "vercel" : "otro",
+    via: CFG.anthropicKey ? "anthropic_key" : process.env.AI_GATEWAY_API_KEY ? "gateway_key" : oidc ? "gateway_oidc_header" : process.env.VERCEL_OIDC_TOKEN ? "gateway_oidc_env" : "ninguna",
+    model: CFG.modelFree,
+  };
+  if (!aiReady(oidc)) return send(res, 200, { ...info, ok: false, error: "not_configured" });
+  try {
+    await claude({ model: CFG.modelFree, system: "Responde solo: ok", content: [{ type: "text", text: "di ok" }], maxTokens: 5, oidc });
+    send(res, 200, { ...info, ok: true });
+  } catch (e) {
+    send(res, 200, { ...info, ok: false, error: e.code, status: e.upstreamStatus, detail: String(e.message || "").replace(/(sk|vck|key)[-_][A-Za-z0-9_-]+/g, "[oculto]").slice(0, 300) });
+  }
 }
