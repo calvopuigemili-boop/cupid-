@@ -6,8 +6,8 @@ Documento interno del titular de Cupid@. Recoge qué normas aplican, qué está 
 
 ## 1. Lo que te toca a ti (pendiente)
 
-- [x] **Datos del titular** puestos en privacidad, términos y aviso legal: Cupido@, lavakalleta@gmail.com. Revisa ese correo a menudo: es el contacto oficial para usuarios y autoridades.
-- [ ] **Si Cupido@ no es una empresa registrada**, el responsable legal eres tú como persona: conviene añadir tu nombre junto a "Cupido@". **Si algún día ganas dinero con la app**, añade también NIF y dirección en el aviso legal (art. 10 LSSI-CE).
+- [x] **Datos del titular** puestos en privacidad, términos y aviso legal: Jorge Baena Hernández (nombre comercial Cupido@), lavakalleta@gmail.com. Revisa ese correo a menudo: es el contacto oficial para usuarios y autoridades.
+- [ ] **Si algún día ganas dinero con la app**, añade también NIF y dirección en el aviso legal (art. 10 LSSI-CE).
 - [ ] **Contratos con proveedores (art. 28 RGPD)**: comprueba en netlify.com/legal que su acuerdo de encargado del tratamiento (*Data Processing Addendum*) se aplica a tu cuenta (normalmente va incluido en sus términos) y guarda una copia. Revisa que su lista de subencargados incluye a Anthropic, que es quien da la IA a través de su pasarela.
 - [ ] **Leer este documento entero** y guardarlo: es tu registro de actividades de tratamiento (apartado 4) y tu evaluación de impacto (apartado 5). Actualízalo si cambias lo que hace la app.
 - [ ] **Delegado de protección de datos (DPD)**: si Cupid@ llega a tratar datos a gran escala (miles de usuarios activos), estarás obligado a nombrar uno y comunicarlo a la AEPD (art. 37 RGPD y art. 34 LOPDGDD), porque el núcleo del servicio son datos que pueden revelar la orientación sexual.

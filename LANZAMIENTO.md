@@ -3,7 +3,7 @@
 ## 1. Antes de abrirla al público
 
 **Imprescindible**
-- [x] Datos del titular en los textos legales (Cupido@, lavakalleta@gmail.com).
+- [x] Datos del titular en los textos legales (Jorge Baena Hernández, Cupido@, lavakalleta@gmail.com).
 - [ ] Repasar la lista de `CUMPLIMIENTO-UE.md`.
 - [ ] Revisar en Netlify (Usage) cuántos créditos gasta la app tras la primera semana.
 - [ ] Probar el flujo completo en el móvil: bienvenida → Abrir con capturas → "Lo he enviado" (animación) → Responder → Chats → Perfil.
