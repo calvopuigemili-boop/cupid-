@@ -51,7 +51,7 @@ export default async function handler(req, res) {
 
   const maxTokens = x.task === "read" ? 1200 : x.task === "reply" ? 3000 : 2200;
   const once = async () => {
-    const text = await claude({ model, system, content, maxTokens, oidc });
+    const text = await claude({ model, system, content, maxTokens, oidc, json });
     return json ? tidy(x, parseJson(text)) : text;
   };
   try {
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
     const used = counts ? await bump(`g:${day}:${device}`).catch(() => null) : await peek(`g:${day}:${device}`).catch(() => null);
     // Marca legible por máquina de que el contenido lo ha generado una IA (Reglamento de IA, art. 50)
     res.setHeader("x-ai-generated", "true");
-    return send(res, 200, { data, ai_generated: true, generator: "Cupid@ con Claude (Anthropic)", usage: { used, limit, premium: lic.premium } });
+    return send(res, 200, { data, ai_generated: true, generator: `Cupid@ con ${CFG.aiName}`, usage: { used, limit, premium: lic.premium } });
   } catch (e) {
     console.error("generate", x.task, e.code || "", e.message);
     return send(res, e.status || 502, { error: e.code || "upstream_error" });
@@ -114,8 +114,8 @@ async function usage(req, res) {
   const oidc = String(req.headers["x-vercel-oidc-token"] || "") || undefined;
   const info = {
     host: CFG.onVercel ? "vercel" : "otro",
-    via: CFG.anthropicKey ? "anthropic_key" : process.env.AI_GATEWAY_API_KEY ? "gateway_key" : oidc ? "gateway_oidc_header" : process.env.VERCEL_OIDC_TOKEN ? "gateway_oidc_env" : "ninguna",
-    model: CFG.modelFree,
+    via: CFG.anthropicKey ? "anthropic_key" : CFG.mistralKey ? "mistral_key" : process.env.AI_GATEWAY_API_KEY ? "gateway_key" : oidc ? "gateway_oidc_header" : process.env.VERCEL_OIDC_TOKEN ? "gateway_oidc_env" : "ninguna",
+    model: !CFG.anthropicKey && CFG.mistralKey ? CFG.modelMistral : CFG.modelFree,
   };
   if (!aiReady(oidc)) return send(res, 200, { ...info, ok: false, error: "not_configured" });
   try {

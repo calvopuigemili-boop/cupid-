@@ -6,6 +6,10 @@ export const CFG = {
   // Pasarela de IA de Vercel: clave propia (AI_GATEWAY_API_KEY) o el token OIDC que Vercel da a cada función
   get gatewayKey() { return process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN; },
   get onVercel() { return !!process.env.VERCEL; },
+  // Mistral AI (Francia): plan gratuito sin tarjeta. Se usa si existe MISTRAL_API_KEY y no hay clave de Anthropic.
+  get mistralKey() { return process.env.MISTRAL_API_KEY; },
+  get modelMistral() { return process.env.MODEL_MISTRAL || "mistral-small-latest"; },
+  get aiName() { return !CFG.anthropicKey && CFG.mistralKey ? "Mistral AI" : "Claude (Anthropic)"; },
   modelFree: process.env.MODEL_FREE || "claude-haiku-5-5",
   modelPremium: process.env.MODEL_PREMIUM || "claude-haiku-5-5",
   modelRead: process.env.MODEL_READ || "claude-haiku-5-5",
@@ -122,14 +126,15 @@ export function newLicense() {
       que Vercel manda a cada función (cabecera x-vercel-oidc-token), sin configurar nada. */
 let client = null;
 const GATEWAY = "https://ai-gateway.vercel.sh";
-export function aiReady(oidc) { return !!(CFG.anthropicKey || CFG.gatewayKey || oidc); }
+export function aiReady(oidc) { return !!(CFG.anthropicKey || CFG.mistralKey || CFG.gatewayKey || oidc); }
 function aiClient(oidc) {
   if (CFG.anthropicKey) return (client ||= new Anthropic());
   return new Anthropic({ apiKey: process.env.AI_GATEWAY_API_KEY || oidc || process.env.VERCEL_OIDC_TOKEN, baseURL: GATEWAY });
 }
 // En la pasarela de Vercel los modelos se llaman "anthropic/claude-haiku-5.5"
 const gatewayModel = m => /\//.test(m) ? m : "anthropic/" + m.replace(/^(claude-[a-z]+)-(\d+)-(\d+)$/, "$1-$2.$3");
-export async function claude({ model, system, content, maxTokens = 1500, oidc }) {
+export async function claude({ model, system, content, maxTokens = 1500, oidc, json = false }) {
+  if (!CFG.anthropicKey && CFG.mistralKey) return mistral({ system, content, maxTokens, json });
   const ai = aiClient(oidc);
   if (!CFG.anthropicKey) model = gatewayModel(model);
   let j;
@@ -149,6 +154,45 @@ export async function claude({ model, system, content, maxTokens = 1500, oidc })
   if (j.stop_reason === "refusal" || !text) throw Object.assign(new Error("refused"), { status: 422, code: "refused" });
   return text;
 }
+/* ---------- Mistral AI ----------
+   API de chat de Mistral (https://api.mistral.ai), con imágenes en base64 y modo JSON.
+   El plan gratuito limita a ~1 petición por segundo: se reintenta solo si devuelve 429. */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+async function mistral({ system, content, maxTokens, json }) {
+  const parts = content.map(c => c.type === "image"
+    ? { type: "image_url", image_url: `data:${c.source.media_type};base64,${c.source.data}` }
+    : { type: "text", text: c.text });
+  const body = {
+    model: CFG.modelMistral, max_tokens: maxTokens, temperature: 0.8,
+    messages: [{ role: "system", content: system }, { role: "user", content: parts }],
+    ...(json ? { response_format: { type: "json_object" } } : {}),
+  };
+  let r, j, msg = "";
+  for (let i = 0; i < 4; i++) {
+    try {
+      r = await fetch("https://api.mistral.ai/v1/chat/completions", {
+        method: "POST",
+        headers: { authorization: `Bearer ${CFG.mistralKey}`, "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify(body),
+      });
+    } catch (e) { throw Object.assign(new Error("mistral_network"), { status: 502, code: "upstream_error" }); }
+    if (r.status !== 429 || i === 3) break;
+    await sleep(1200 * (i + 1));
+  }
+  j = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    msg = String(j?.message || j?.error?.message || j?.detail || r.statusText || "");
+    const code = r.status === 401 || r.status === 403 ? "ai_auth" : r.status === 429 ? "busy"
+      : /credit|payment|billing|quota|limit/i.test(msg) ? "ai_credits"
+      : r.status === 400 && /image/i.test(msg) ? "image_rejected" : r.status === 404 ? "ai_model" : "upstream_error";
+    console.error("mistral", r.status, code, msg.slice(0, 300));
+    throw Object.assign(new Error(msg || "mistral_error"), { status: 502, code, upstreamStatus: r.status });
+  }
+  const text = String(j?.choices?.[0]?.message?.content || "").trim();
+  if (!text) throw Object.assign(new Error("refused"), { status: 422, code: "refused" });
+  return text;
+}
+
 // Lee JSON con tolerancia: todo, un bloque ```json, del primer { al último }, o reparando una respuesta cortada.
 export function parseJson(text) {
   // Arregla rangos copiados de la plantilla ("quimica":0-100)

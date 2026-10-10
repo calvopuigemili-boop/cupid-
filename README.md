@@ -5,7 +5,8 @@ Funciona en **Vercel** (alojamiento actual) y en **Netlify** con el mismo códig
 ## Vercel
 
 1. vercel.com → *Sign up* con GitHub → *Add New… → Project* → importa este repositorio. No cambies nada: `vercel.json` ya dice cómo se construye.
-2. La IA usa la pasarela de IA de Vercel (5 $ gratis al mes) con el token que Vercel da a cada función: no hace falta clave. Si la pasarela pide una, crea una en *AI Gateway → API Keys* y ponla como variable de entorno `AI_GATEWAY_API_KEY`.
+2. **IA: Mistral AI** (plan gratuito, sin tarjeta). En console.mistral.ai crea la cuenta, verifica tu teléfono, elige el plan *Experiment* y crea una API key. En admin.mistral.ai → *Privacy* desactiva **Anonymous improvement data** (obligatorio: si no, Mistral podría usar los chats para entrenar). En Vercel → *Settings → Environment Variables* añade `MISTRAL_API_KEY` y haz *Redeploy*. Comprueba que va en `/api/generate?diag=1` (`"ok": true`).
+   Alternativa: la pasarela de IA de Vercel con Claude (5 $ gratis al mes, pero pide tarjeta guardada); se usa sola si no hay `MISTRAL_API_KEY`.
 3. Opcional: añade **Upstash Redis** desde *Storage* para que los topes anti-abuso se compartan entre servidores.
 
 En Vercel, por ahora, no hay cuentas, ni votos para aprender, ni sugerencias (dependían de Netlify): la app los oculta sola y los chats se guardan en el móvil.
