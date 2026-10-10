@@ -7,7 +7,7 @@ export const CFG = {
   get gatewayKey() { return process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN; },
   get onVercel() { return !!process.env.VERCEL; },
   // Mistral AI (Francia): plan gratuito sin tarjeta. Se usa si existe MISTRAL_API_KEY y no hay clave de Anthropic.
-  get mistralKey() { return process.env.MISTRAL_API_KEY; },
+  get mistralKey() { return process.env.MISTRAL_API_KEY || process.env.MISTRAL_AP_KEY; },   // también acepta el nombre sin la I
   get modelMistral() { return process.env.MODEL_MISTRAL || "mistral-small-latest"; },
   get aiName() { return !CFG.anthropicKey && CFG.mistralKey ? "Mistral AI" : "Claude (Anthropic)"; },
   modelFree: process.env.MODEL_FREE || "claude-haiku-5-5",
