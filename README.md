@@ -1,6 +1,18 @@
-# Cupid@ — web pública y app instalable (Netlify)
+# Cupid@ — web pública y app instalable
 
-Proyecto en Netlify: **cupida-app** → https://cupida-app.netlify.app
+Funciona en **Vercel** (alojamiento actual) y en **Netlify** con el mismo código.
+
+## Vercel
+
+1. vercel.com → *Sign up* con GitHub → *Add New… → Project* → importa este repositorio. No cambies nada: `vercel.json` ya dice cómo se construye.
+2. La IA usa la pasarela de IA de Vercel (5 $ gratis al mes) con el token que Vercel da a cada función: no hace falta clave. Si la pasarela pide una, crea una en *AI Gateway → API Keys* y ponla como variable de entorno `AI_GATEWAY_API_KEY`.
+3. Opcional: añade **Upstash Redis** desde *Storage* para que los topes anti-abuso se compartan entre servidores.
+
+En Vercel, por ahora, no hay cuentas, ni votos para aprender, ni sugerencias (dependían de Netlify): la app los oculta sola y los chats se guardan en el móvil.
+
+## Netlify
+
+Proyecto anterior: **cupida-app** → https://cupida-app.netlify.app (cuenta suspendida el 10 de octubre de 2026, recurso enviado).
 
 ## Qué hay en la carpeta
 

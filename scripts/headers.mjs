@@ -1,4 +1,4 @@
-// Genera public/_headers con una política de seguridad de contenidos (CSP) estricta:
+// Genera public/_headers (Netlify) y una etiqueta <meta> (cualquier alojamiento) con una política de seguridad de contenidos (CSP) estricta:
 // solo se ejecutan los scripts de esta web (los inline, por su huella SHA-256). Se ejecuta en cada build.
 import fs from "node:fs";
 import crypto from "node:crypto";
@@ -35,4 +35,17 @@ const out = `/*
   Cross-Origin-Opener-Policy: same-origin
 `;
 fs.writeFileSync(new URL("../public/_headers", import.meta.url), out);
+
+// Además, la misma CSP como <meta> dentro de cada página: así funciona en cualquier alojamiento
+// (Vercel no lee _headers). frame-ancestors no vale en <meta>: lo cubre la cabecera X-Frame-Options.
+const metaCsp = csp.split("; ").filter(d => !d.startsWith("frame-ancestors")).join("; ");
+for (const p of pages) {
+  const url = new URL(`../public/${p}`, import.meta.url);
+  let html = fs.readFileSync(url, "utf8");
+  const tag = `<meta http-equiv="Content-Security-Policy" content="${metaCsp}">`;
+  html = /<meta http-equiv="Content-Security-Policy"[^>]*>/.test(html)
+    ? html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, tag)
+    : html.replace(/<meta charset="utf-8">/i, m => `${m}\n${tag}`);
+  fs.writeFileSync(url, html);
+}
 console.log(`_headers: CSP con ${hashes.size} script(s) inline`);

@@ -8,7 +8,8 @@ Documento interno del titular de Cupid@. Recoge qué normas aplican, qué está 
 
 - [x] **Datos del titular** puestos en privacidad, términos y aviso legal: Jorge Baena Hernández (nombre comercial Cupido@), lavakalleta@gmail.com. Revisa ese correo a menudo: es el contacto oficial para usuarios y autoridades.
 - [ ] **Si algún día ganas dinero con la app**, añade también NIF y dirección en el aviso legal (art. 10 LSSI-CE).
-- [ ] **Contratos con proveedores (art. 28 RGPD)**: comprueba en netlify.com/legal que su acuerdo de encargado del tratamiento (*Data Processing Addendum*) se aplica a tu cuenta (normalmente va incluido en sus términos) y guarda una copia. Revisa que su lista de subencargados incluye a Anthropic, que es quien da la IA a través de su pasarela.
+- [ ] **Contratos con proveedores (art. 28 RGPD)**: la web está ahora en Vercel. Comprueba en vercel.com/legal/dpa que su acuerdo de encargado del tratamiento se aplica a tu cuenta y guarda una copia; Anthropic da la IA a través de su pasarela.
+- [ ] **Datos que quedaron en Netlify** (cuentas y chats en la nube): si reactivan la cuenta, expórtalos o bórralos; si no, pide a Netlify que los borren (formulario de soporte, tema "Delete my account and data (GDPR)").
 - [ ] **Leer este documento entero** y guardarlo: es tu registro de actividades de tratamiento (apartado 4) y tu evaluación de impacto (apartado 5). Actualízalo si cambias lo que hace la app.
 - [ ] **Delegado de protección de datos (DPD)**: si Cupid@ llega a tratar datos a gran escala (miles de usuarios activos), estarás obligado a nombrar uno y comunicarlo a la AEPD (art. 37 RGPD y art. 34 LOPDGDD), porque el núcleo del servicio son datos que pueden revelar la orientación sexual.
 - [ ] **Si algún día pones anuncios, analítica o pagos**: hará falta banner de cookies, revisar consentimientos y, con pagos, derecho de desistimiento e información precontractual.
@@ -36,8 +37,8 @@ El reglamento pide que el contenido sintético generado se marque "en un formato
 
 | Actividad | Finalidad | Interesados | Datos | Base legal | Destinatarios / transferencias | Plazo |
 |---|---|---|---|---|---|---|
-| Generar mensajes | Crear abridores, respuestas y análisis de perfil con IA | Usuarios; personas con las que hablan | Perfil (sexo, a quién busca), texto, capturas, fichas, conversación | Art. 6.1.b + 9.2.a (usuario); 6.1.f (terceros) | Netlify (encargado), Anthropic (subencargado), EE. UU. (DPF o CCT) | No se conserva en servidor |
-| Cuentas y sincronización | Guardar chats y perfil en la nube | Usuarios con cuenta; terceros incluidos en sus chats | Email, contraseña cifrada, perfil, consentimiento, chats | Art. 6.1.b + 9.2.a; 6.1.c para la prueba del consentimiento | Netlify, EE. UU. | Hasta que el usuario borre |
+| Generar mensajes | Crear abridores, respuestas y análisis de perfil con IA | Usuarios; personas con las que hablan | Perfil (sexo, a quién busca), texto, capturas, fichas, conversación | Art. 6.1.b + 9.2.a (usuario); 6.1.f (terceros) | Vercel (encargado), Anthropic (subencargado), EE. UU. (DPF o CCT) | No se conserva en servidor |
+| Cuentas y sincronización (en pausa desde el cambio a Vercel) | Guardar chats y perfil en la nube | Usuarios con cuenta; terceros incluidos en sus chats | Email, contraseña cifrada, perfil, consentimiento, chats | Art. 6.1.b + 9.2.a; 6.1.c para la prueba del consentimiento | Netlify, EE. UU. | Hasta que el usuario borre |
 | Topes anti-abuso | Evitar abusos del servicio gratuito | Usuarios | Id aleatorio del dispositivo, huella diaria de IP | Art. 6.1.f | Netlify | 48 h |
 | Aprendizaje | Mejorar el estilo de la IA | Usuarios (anonimizados) | Mensajes anonimizados con puntuación | Art. 6.1.f, con oposición desde la app | Netlify | 12 meses sin actividad |
 | Sugerencias | Mejorar la app | Usuarios | Texto, huella corta del dispositivo | Art. 6.1.f | Netlify | 12 meses |

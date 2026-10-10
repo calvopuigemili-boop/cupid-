@@ -3,6 +3,9 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export const CFG = {
   get anthropicKey() { return process.env.ANTHROPIC_API_KEY; },
+  // Pasarela de IA de Vercel: clave propia (AI_GATEWAY_API_KEY) o el token OIDC que Vercel da a cada función
+  get gatewayKey() { return process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN; },
+  get onVercel() { return !!process.env.VERCEL; },
   modelFree: process.env.MODEL_FREE || "claude-haiku-5-5",
   modelPremium: process.env.MODEL_PREMIUM || "claude-haiku-5-5",
   modelRead: process.env.MODEL_READ || "claude-haiku-5-5",
@@ -113,14 +116,25 @@ export function newLicense() {
 }
 
 /* ---------- Claude ----------
-   Usa el SDK oficial. En Netlify, la pasarela de IA (AI Gateway) inyecta ANTHROPIC_API_KEY y
-   ANTHROPIC_BASE_URL sola, así que no hace falta cuenta de Anthropic. Fuera de Netlify, pon tu clave. */
+   Usa el SDK oficial, con tres formas de conectarse (la primera que esté disponible):
+   1. ANTHROPIC_API_KEY: en Netlify la pone sola su pasarela de IA; fuera, tu propia clave de Anthropic.
+   2. Pasarela de IA de Vercel (https://ai-gateway.vercel.sh): con AI_GATEWAY_API_KEY o con el token OIDC
+      que Vercel manda a cada función (cabecera x-vercel-oidc-token), sin configurar nada. */
 let client = null;
-export async function claude({ model, system, content, maxTokens = 1500 }) {
-  if (!client) client = new Anthropic();
+const GATEWAY = "https://ai-gateway.vercel.sh";
+export function aiReady(oidc) { return !!(CFG.anthropicKey || CFG.gatewayKey || oidc); }
+function aiClient(oidc) {
+  if (CFG.anthropicKey) return (client ||= new Anthropic());
+  return new Anthropic({ apiKey: process.env.AI_GATEWAY_API_KEY || oidc || process.env.VERCEL_OIDC_TOKEN, baseURL: GATEWAY });
+}
+// En la pasarela de Vercel los modelos se llaman "anthropic/claude-haiku-5.5"
+const gatewayModel = m => /\//.test(m) ? m : "anthropic/" + m.replace(/^(claude-[a-z]+)-(\d+)-(\d+)$/, "$1-$2.$3");
+export async function claude({ model, system, content, maxTokens = 1500, oidc }) {
+  const ai = aiClient(oidc);
+  if (!CFG.anthropicKey) model = gatewayModel(model);
   let j;
   try {
-    j = await client.messages.create({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content }] });
+    j = await ai.messages.create({ model, max_tokens: maxTokens, system, messages: [{ role: "user", content }] });
   } catch (e) {
     const st = e?.status;
     const code = st === 429 || st === 529 ? "busy" : st === 400 && /image/i.test(e?.message || "") ? "image_rejected" : "upstream_error";

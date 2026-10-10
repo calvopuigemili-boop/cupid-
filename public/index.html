@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-6exnNCUd1LpInKyn+rm/68701k0ns1OyO+gcJW1CQyU=' 'sha256-cafsfAeoXeB6YQaZcUQv3GvCQmuU4EM2Vmvj43+X0Qk='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; media-src 'self' data: blob:; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cupid@ · Tu colega crack para ligar en Instagram</title>
 <meta name="description" content="Abridores con descaro, qué contestar cuando la conversación se enfría y un chat guardado para cada persona. Para mayores de 18.">
@@ -405,7 +406,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
         <dt>Responsable</dt><dd>Jorge Baena Hernández (Cupido@) · <a href="mailto:lavakalleta@gmail.com">lavakalleta@gmail.com</a> (más en el <a href="/aviso-legal" target="_blank" rel="noopener">aviso legal</a>).</dd>
         <dt>Finalidad</dt><dd>Crear sugerencias de mensajes con inteligencia artificial y, si creas cuenta, guardar tus chats.</dd>
         <dt>Legitimación</dt><dd>Tu consentimiento explícito y la prestación del servicio que pides. Mejora anónima de la IA: interés legítimo, con opción de desactivarla.</dd>
-        <dt>Destinatarios</dt><dd>Netlify (alojamiento) y Anthropic (la IA Claude), en EE. UU. con garantías de la UE. No vendemos datos ni hay publicidad.</dd>
+        <dt>Destinatarios</dt><dd>Vercel (alojamiento) y Anthropic (la IA Claude), en EE. UU. con garantías de la UE. No vendemos datos ni hay publicidad.</dd>
         <dt>Derechos</dt><dd>Acceso, rectificación, supresión, portabilidad, oposición y limitación; puedes descargar o borrar tus datos en "Tus datos".</dd>
         <dt>Más información</dt><dd><a href="/privacidad" target="_blank" rel="noopener">Política de privacidad</a>.</dd>
       </dl>
@@ -789,6 +790,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
   const POLICY_V = "2026-10-10";
   const consentOk = () => { const k = ls.get("cupid_consent"); return !!(k && k.v === POLICY_V && k.legal && k.sens); };
   const learnOn = () => ls.get("cupid_learn") !== false;
+  let feedbackOn = true;   // votos y sugerencias disponibles en este alojamiento
   let level = ls.get("cupid_level") || "picante";
   const imgLimits = { maxCount: 4, mediaTypes: ["image/jpeg","image/png","image/webp","image/gif"] };
   let chats = [], activeId = null, cMode = "reply";
@@ -1129,7 +1131,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     return Store.save(c).then(() => entry);
   }
   function sendFeedback(body){
-    if (!learnOn()) return;
+    if (!learnOn() || !feedbackOn) return;
     try { fetch("/api/feedback", { method: "POST", keepalive: true, headers: { "content-type": "application/json", "x-device": deviceId }, body: JSON.stringify(body) }).catch(() => {}); } catch {}
   }
   function markSent(id, msg, meta = {}){
@@ -1162,6 +1164,7 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
   const THUMB = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v11H4a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h3zm0 0 4-7a2 2 0 0 1 2 2v4h5.5a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 17.3 20H7"/></svg>';
   function voteBtns(o, meta, name){
     const w = el("span","votes"); w.setAttribute("role","group"); w.setAttribute("aria-label","¿Te gusta este mensaje?");
+    if (!feedbackOn) w.hidden = true;
     const up = el("button","vote"); up.type = "button"; up.innerHTML = THUMB; up.setAttribute("aria-label","Me gusta");
     const down = el("button","vote down"); down.type = "button"; down.innerHTML = THUMB; down.setAttribute("aria-label","No me gusta");
     const vote = (b, ev) => {
@@ -1710,6 +1713,15 @@ input[type="password"]:focus{border-color:var(--accent);background:var(--surface
     let u = null; try { u = await Auth.getUser(); } catch {}
     if (u && Sync.user?.id !== u.id) await onLogin(u); else drawAccount();
   }
+
+  /* ================= Funciones que dependen del alojamiento ================= */
+  // En Netlify hay votos para aprender y sugerencias; en Vercel, por ahora no: se ocultan.
+  fetch("/api/feedback", { method: "HEAD" }).then(r => {
+    if (r.status !== 404) return;
+    feedbackOn = false;
+    $("#suggBtn").hidden = true; $("#learnOk").closest("label").hidden = true;
+    document.querySelectorAll(".votes").forEach(v => v.hidden = true);
+  }).catch(() => {});
 
   /* ================= Tus datos (RGPD) ================= */
   let wipeArmed = false;

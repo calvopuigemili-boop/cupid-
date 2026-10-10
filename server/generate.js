@@ -1,14 +1,15 @@
 // POST /api/generate — genera abridores, respuestas, análisis de perfil o lee capturas.
 // Cabeceras: x-device (id aleatorio del móvil), x-license (código Premium, opcional).
 import crypto from "node:crypto";
-import { CFG, send, readJson, clientIp, today, bump, peek, claude, parseJson } from "./_lib.js";
+import { CFG, send, readJson, clientIp, today, bump, peek, claude, parseJson, aiReady } from "./_lib.js";
 import { cleanInput, buildTask } from "./_prompts.js";
 import { examples, examplesBlock, sign } from "./_learn.js";
 
 export default async function handler(req, res) {
   if (req.method === "GET") return usage(req, res);
   if (req.method !== "POST") return send(res, 405, { error: "method_not_allowed" });
-  if (!CFG.anthropicKey) return send(res, 500, { error: "not_configured", message: "La IA aún no está activa: en Netlify se activa sola tras el primer deploy de producción." });
+  const oidc = String(req.headers["x-vercel-oidc-token"] || "") || undefined;
+  if (!aiReady(oidc)) return send(res, 500, { error: "not_configured", message: "La IA aún no está activa." });
 
   let body;
   try { body = await readJson(req); } catch (e) { return send(res, e.status || 400, { error: e.status === 413 ? "too_large" : "bad_request" }); }
@@ -50,7 +51,7 @@ export default async function handler(req, res) {
 
   const maxTokens = x.task === "read" ? 1200 : x.task === "reply" ? 3000 : 2200;
   const once = async () => {
-    const text = await claude({ model, system, content, maxTokens });
+    const text = await claude({ model, system, content, maxTokens, oidc });
     return json ? tidy(x, parseJson(text)) : text;
   };
   try {
